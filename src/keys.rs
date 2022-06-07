@@ -18,7 +18,7 @@ use std::ffi::CString;
 
 /// x509 key format.
 #[allow(missing_docs)]
-#[repr(u32)]
+#[repr(i32)]
 pub enum XmlSecKeyFormat
 {
     Unknown  = bindings::xmlSecKeyDataFormat_xmlSecKeyDataFormatUnknown,
@@ -60,7 +60,7 @@ impl XmlSecKey
         // Load key from file
         let key = unsafe { bindings::xmlSecOpenSSLAppKeyLoad(
             cpath.as_ptr(),
-            format as u32,
+            format as i32,
             cpasswd_ptr,
             null_mut(),
             null_mut()
@@ -87,8 +87,8 @@ impl XmlSecKey
         // Load key from buffer
         let key = unsafe { bindings::xmlSecOpenSSLAppKeyLoadMemory(
             buffer.as_ptr(),
-            buffer.len() as u32,
-            format as u32,
+            buffer.len() as u64,
+            format as i32,
             cpasswd_ptr,
             null_mut(),
             null_mut()
@@ -106,7 +106,7 @@ impl XmlSecKey
     {
         let cpath = CString::new(path).unwrap();
 
-        let rc = unsafe { bindings::xmlSecOpenSSLAppKeyCertLoad(self.0, cpath.as_ptr(), format as u32) };
+        let rc = unsafe { bindings::xmlSecOpenSSLAppKeyCertLoad(self.0, cpath.as_ptr(), format as i32) };
 
         if rc != 0 {
             return Err(XmlSecError::CertLoadError);
@@ -122,8 +122,8 @@ impl XmlSecKey
             bindings::xmlSecOpenSSLAppKeyCertLoadMemory(
                 self.0,
                 buff.as_ptr(),
-                buff.len() as u32,
-                format as u32
+                buff.len() as u64,
+                format as i32
             )
         };
 
