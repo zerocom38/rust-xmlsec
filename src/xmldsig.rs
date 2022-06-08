@@ -10,6 +10,7 @@ use crate::XmlSecResult;
 use crate::XmlNode;
 use crate::XmlDocument;
 
+use std::ffi::CString;
 use std::os::raw::c_uchar;
 use std::ptr::null_mut;
 
@@ -203,8 +204,8 @@ fn find_signode(tree: *mut bindings::xmlNode) -> XmlSecResult<*mut bindings::xml
 {
     let signode = unsafe {bindings::xmlSecFindNode(
         tree,
-        &bindings::xmlSecNodeSignature as *const c_uchar,
-        &bindings::xmlSecDSigNs        as *const c_uchar,
+        CString::new("Signature").unwrap().as_ptr() as *const c_uchar,
+        CString::new("http://www.w3.org/2000/09/xmldsig#").unwrap().as_ptr() as *const c_uchar,
     ) };
 
     if signode.is_null() {
