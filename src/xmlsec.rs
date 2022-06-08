@@ -77,27 +77,27 @@ fn init_xmlsec()
 fn init_crypto_app()
 {
     // if bindings::XMLSEC_CRYPTO_DYNAMIC_LOADING
-    // {
-    //     let rc = unsafe { bindings::xmlSecCryptoDLLoadLibrary(0) };
+     {
+         let rc = unsafe { bindings::xmlSecCryptoDLLoadLibrary(0usize as _) };
 
-    //     if rc < 0 {
-    //         panic!("XmlSec failed while loading default crypto backend. \
-    //                 Make sure that you have it installed and check shread libraries path");
-    //     }
-    // }
+         if rc < 0 {
+             panic!("XmlSec failed while loading default crypto backend. \
+                     Make sure that you have it installed and check shread libraries path");
+         }
+     }
 
-    let rc = unsafe { bindings::xmlSecOpenSSLAppInit(null()) };
+//    let rc = unsafe { bindings::xmlSecOpenSSLAppInit(null()) };
 
-    if rc < 0 {
-        panic!("XmlSec failed to init crypto backend")
-    }
+ //   if rc < 0 {
+ //       panic!("XmlSec failed to init crypto backend")
+ //   }
 }
 
 
 /// Init xmlsec-crypto library
 fn init_crypto()
 {
-    let rc = unsafe { bindings::xmlSecOpenSSLInit() };
+    let rc = unsafe { bindings::xmlSecCryptoInit() };
 
     if rc < 0 {
         panic!("XmlSec failed while loading default crypto backend. \
@@ -109,19 +109,19 @@ fn init_crypto()
 /// Shutdown xmlsec-crypto library
 fn cleanup_crypto()
 {
-    unsafe { bindings::xmlSecOpenSSLShutdown() };
+//    unsafe { bindings::xmlSecCryptoShutdown() };
 }
 
 
 /// Shutdown crypto library
 fn cleanup_crypto_app()
 {
-    unsafe { bindings::xmlSecOpenSSLAppShutdown() };
+//    unsafe { bindings::xmlSecCryptoAppShutdown() };
 }
 
 
 /// Shutdown xmlsec library
 fn cleanup_xmlsec()
 {
-    unsafe { bindings::xmlSecShutdown() };
+//    unsafe { bindings::xmlSecShutdown() };
 }

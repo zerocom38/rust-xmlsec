@@ -116,12 +116,16 @@ mod vcpkg_dep {
     pub fn find(flags: &mut Vec<String>, includes: &mut Vec<PathBuf>) {
         let lib = vcpkg::find_package("xmlsec").unwrap();
         let defs: Vec<String> = vec![
-//            "-DXMLSEC_STATIC".to_string(),
-            "-DXMLSEC_NO_CRYPTO_DYNAMIC_LOADING".to_string(),
+            //            "-DXMLSEC_STATIC".to_string(),
+            //            "-DXMLSEC_NO_CRYPTO_DYNAMIC_LOADING".to_string(),
+            "-DXMLSEC_CRYPTO_DYNAMIC_LOADING".to_string(),
             "-DXMLSEC_DEFAULT_CRYPTO=\"openssl\"".to_string(),
-            "-DXMLSEC_CRYPTO_OPENSSL".to_string(),
+            "-DXMLSEC_CRYPTO_OPENSSL=1".to_string(),
             "-DOPENSSL_NO_GOST".to_string(),
             "-DXMLSEC_NO_XSLT".to_string(),
+            "-DXMLSEC_DL_WIN32".to_string(),
+            "-DXMLSEC_DL_LIBLTDL".to_string(),
+            "-D_WIN32".to_string(),
         ];
         *includes = lib.include_paths;
         *flags = defs;
