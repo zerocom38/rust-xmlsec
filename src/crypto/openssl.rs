@@ -3,11 +3,9 @@
 //!
 use crate::bindings;
 
-
 /// Supported digesting and signing methods as specified by the XML standard.
 #[allow(missing_docs)]
-pub enum XmlSecSignatureMethod
-{
+pub enum XmlSecSignatureMethod {
     Aes128Cbc,
     Aes192Cbc,
     Aes256Cbc,
@@ -51,55 +49,51 @@ pub enum XmlSecSignatureMethod
     Sha512,
 }
 
-
-impl XmlSecSignatureMethod
-{
+impl XmlSecSignatureMethod {
     /// Returns the resource pointer for the corresponding digesting/signing resource
-    pub fn to_method(&self) -> bindings::xmlSecTransformId
-    {
-        match self
-        {
-            Self::Aes128Cbc     => unsafe { bindings::xmlSecOpenSSLTransformAes128CbcGetKlass() },
-            Self::Aes192Cbc     => unsafe { bindings::xmlSecOpenSSLTransformAes192CbcGetKlass() },
-            Self::Aes256Cbc     => unsafe { bindings::xmlSecOpenSSLTransformAes256CbcGetKlass() },
+    pub fn to_method(&self) -> bindings::xmlSecTransformId {
+        match self {
+            Self::Aes128Cbc => unsafe { bindings::xmlSecTransformAes128CbcGetKlass() },
+            Self::Aes192Cbc => unsafe { bindings::xmlSecTransformAes192CbcGetKlass() },
+            Self::Aes256Cbc => unsafe { bindings::xmlSecTransformAes256CbcGetKlass() },
             // Self::Aes128Gcm     => unsafe { bindings::xmlSecOpenSSLTransformAes128GcmGetKlass() },
             // Self::Aes192Gcm     => unsafe { bindings::xmlSecOpenSSLTransformAes192GcmGetKlass() },
             // Self::Aes256Gcm     => unsafe { bindings::xmlSecOpenSSLTransformAes256GcmGetKlass() },
-            Self::KWAes128      => unsafe { bindings::xmlSecOpenSSLTransformKWAes128GetKlass() },
-            Self::KWAes192      => unsafe { bindings::xmlSecOpenSSLTransformKWAes192GetKlass() },
-            Self::KWAes256      => unsafe { bindings::xmlSecOpenSSLTransformKWAes256GetKlass() },
-            Self::Des3Cbc       => unsafe { bindings::xmlSecOpenSSLTransformDes3CbcGetKlass() },
-            Self::KWDes3        => unsafe { bindings::xmlSecOpenSSLTransformKWDes3GetKlass() },
-            Self::DsaSha1       => unsafe { bindings::xmlSecOpenSSLTransformDsaSha1GetKlass() },
-            Self::DsaSha256     => unsafe { bindings::xmlSecOpenSSLTransformDsaSha256GetKlass() },
-            Self::EcdsaSha1     => unsafe { bindings::xmlSecOpenSSLTransformEcdsaSha1GetKlass() },
-            Self::EcdsaSha224   => unsafe { bindings::xmlSecOpenSSLTransformEcdsaSha224GetKlass() },
-            Self::EcdsaSha256   => unsafe { bindings::xmlSecOpenSSLTransformEcdsaSha256GetKlass() },
-            Self::EcdsaSha384   => unsafe { bindings::xmlSecOpenSSLTransformEcdsaSha384GetKlass() },
-            Self::EcdsaSha512   => unsafe { bindings::xmlSecOpenSSLTransformEcdsaSha512GetKlass() },
-            Self::HmacMd5       => unsafe { bindings::xmlSecOpenSSLTransformHmacMd5GetKlass() },
-            Self::HmacRipemd160 => unsafe { bindings::xmlSecOpenSSLTransformHmacRipemd160GetKlass() },
-            Self::HmacSha1      => unsafe { bindings::xmlSecOpenSSLTransformHmacSha1GetKlass() },
-            Self::HmacSha224    => unsafe { bindings::xmlSecOpenSSLTransformHmacSha224GetKlass() },
-            Self::HmacSha256    => unsafe { bindings::xmlSecOpenSSLTransformHmacSha256GetKlass() },
-            Self::HmacSha384    => unsafe { bindings::xmlSecOpenSSLTransformHmacSha384GetKlass() },
-            Self::HmacSha512    => unsafe { bindings::xmlSecOpenSSLTransformHmacSha512GetKlass() },
-            Self::Md5           => unsafe { bindings::xmlSecOpenSSLTransformMd5GetKlass() },
-            Self::Ripemd160     => unsafe { bindings::xmlSecOpenSSLTransformRipemd160GetKlass() },
-            Self::RsaMd5        => unsafe { bindings::xmlSecOpenSSLTransformRsaMd5GetKlass() },
-            Self::RsaRipemd160  => unsafe { bindings::xmlSecOpenSSLTransformRsaRipemd160GetKlass() },
-            Self::RsaSha1       => unsafe { bindings::xmlSecOpenSSLTransformRsaSha1GetKlass() },
-            Self::RsaSha224     => unsafe { bindings::xmlSecOpenSSLTransformRsaSha224GetKlass() },
-            Self::RsaSha256     => unsafe { bindings::xmlSecOpenSSLTransformRsaSha256GetKlass() },
-            Self::RsaSha384     => unsafe { bindings::xmlSecOpenSSLTransformRsaSha384GetKlass() },
-            Self::RsaSha512     => unsafe { bindings::xmlSecOpenSSLTransformRsaSha512GetKlass() },
-            Self::RsaPkcs1      => unsafe { bindings::xmlSecOpenSSLTransformRsaPkcs1GetKlass() },
-            Self::RsaOaep       => unsafe { bindings::xmlSecOpenSSLTransformRsaOaepGetKlass() },
-            Self::Sha1          => unsafe { bindings::xmlSecOpenSSLTransformSha1GetKlass() },
-            Self::Sha224        => unsafe { bindings::xmlSecOpenSSLTransformSha224GetKlass() },
-            Self::Sha256        => unsafe { bindings::xmlSecOpenSSLTransformSha256GetKlass() },
-            Self::Sha384        => unsafe { bindings::xmlSecOpenSSLTransformSha384GetKlass() },
-            Self::Sha512        => unsafe { bindings::xmlSecOpenSSLTransformSha512GetKlass() },
+            Self::KWAes128 => unsafe { bindings::xmlSecTransformKWAes128GetKlass() },
+            Self::KWAes192 => unsafe { bindings::xmlSecTransformKWAes192GetKlass() },
+            Self::KWAes256 => unsafe { bindings::xmlSecTransformKWAes256GetKlass() },
+            Self::Des3Cbc => unsafe { bindings::xmlSecTransformDes3CbcGetKlass() },
+            Self::KWDes3 => unsafe { bindings::xmlSecTransformKWDes3GetKlass() },
+            Self::DsaSha1 => unsafe { bindings::xmlSecTransformDsaSha1GetKlass() },
+            Self::DsaSha256 => unsafe { bindings::xmlSecTransformDsaSha256GetKlass() },
+            Self::EcdsaSha1 => unsafe { bindings::xmlSecTransformEcdsaSha1GetKlass() },
+            Self::EcdsaSha224 => unsafe { bindings::xmlSecTransformEcdsaSha224GetKlass() },
+            Self::EcdsaSha256 => unsafe { bindings::xmlSecTransformEcdsaSha256GetKlass() },
+            Self::EcdsaSha384 => unsafe { bindings::xmlSecTransformEcdsaSha384GetKlass() },
+            Self::EcdsaSha512 => unsafe { bindings::xmlSecTransformEcdsaSha512GetKlass() },
+            Self::HmacMd5 => unsafe { bindings::xmlSecTransformHmacMd5GetKlass() },
+            Self::HmacRipemd160 => unsafe { bindings::xmlSecTransformHmacRipemd160GetKlass() },
+            Self::HmacSha1 => unsafe { bindings::xmlSecTransformHmacSha1GetKlass() },
+            Self::HmacSha224 => unsafe { bindings::xmlSecTransformHmacSha224GetKlass() },
+            Self::HmacSha256 => unsafe { bindings::xmlSecTransformHmacSha256GetKlass() },
+            Self::HmacSha384 => unsafe { bindings::xmlSecTransformHmacSha384GetKlass() },
+            Self::HmacSha512 => unsafe { bindings::xmlSecTransformHmacSha512GetKlass() },
+            Self::Md5 => unsafe { bindings::xmlSecTransformMd5GetKlass() },
+            Self::Ripemd160 => unsafe { bindings::xmlSecTransformRipemd160GetKlass() },
+            Self::RsaMd5 => unsafe { bindings::xmlSecTransformRsaMd5GetKlass() },
+            Self::RsaRipemd160 => unsafe { bindings::xmlSecTransformRsaRipemd160GetKlass() },
+            Self::RsaSha1 => unsafe { bindings::xmlSecTransformRsaSha1GetKlass() },
+            Self::RsaSha224 => unsafe { bindings::xmlSecTransformRsaSha224GetKlass() },
+            Self::RsaSha256 => unsafe { bindings::xmlSecTransformRsaSha256GetKlass() },
+            Self::RsaSha384 => unsafe { bindings::xmlSecTransformRsaSha384GetKlass() },
+            Self::RsaSha512 => unsafe { bindings::xmlSecTransformRsaSha512GetKlass() },
+            Self::RsaPkcs1 => unsafe { bindings::xmlSecTransformRsaPkcs1GetKlass() },
+            Self::RsaOaep => unsafe { bindings::xmlSecTransformRsaOaepGetKlass() },
+            Self::Sha1 => unsafe { bindings::xmlSecTransformSha1GetKlass() },
+            Self::Sha224 => unsafe { bindings::xmlSecTransformSha224GetKlass() },
+            Self::Sha256 => unsafe { bindings::xmlSecTransformSha256GetKlass() },
+            Self::Sha384 => unsafe { bindings::xmlSecTransformSha384GetKlass() },
+            Self::Sha512 => unsafe { bindings::xmlSecTransformSha512GetKlass() },
         }
     }
 }

@@ -58,7 +58,7 @@ impl XmlSecKey
             .unwrap_or(null());
 
         // Load key from file
-        let key = unsafe { bindings::xmlSecOpenSSLAppKeyLoad(
+        let key = unsafe { bindings::xmlSecCryptoAppKeyLoad(
             cpath.as_ptr(),
             format as i32,
             cpasswd_ptr,
@@ -85,7 +85,7 @@ impl XmlSecKey
             .unwrap_or(null());
 
         // Load key from buffer
-        let key = unsafe { bindings::xmlSecOpenSSLAppKeyLoadMemory(
+        let key = unsafe { bindings::xmlSecCryptoAppKeyLoadMemory(
             buffer.as_ptr(),
             buffer.len() as u64,
             format as i32,
@@ -106,7 +106,7 @@ impl XmlSecKey
     {
         let cpath = CString::new(path).unwrap();
 
-        let rc = unsafe { bindings::xmlSecOpenSSLAppKeyCertLoad(self.0, cpath.as_ptr(), format as i32) };
+        let rc = unsafe { bindings::xmlSecCryptoAppKeyCertLoad(self.0, cpath.as_ptr(), format as i32) };
 
         if rc != 0 {
             return Err(XmlSecError::CertLoadError);
@@ -119,7 +119,7 @@ impl XmlSecKey
     pub fn load_cert_from_memory(&self, buff: &[u8], format: XmlSecKeyFormat) -> XmlSecResult<()>
     {
         let rc = unsafe {
-            bindings::xmlSecOpenSSLAppKeyCertLoadMemory(
+            bindings::xmlSecCryptoAppKeyCertLoadMemory(
                 self.0,
                 buff.as_ptr(),
                 buff.len() as u64,
