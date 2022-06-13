@@ -240,7 +240,7 @@ impl<'d> TemplateBuilder for XmlDocumentTemplateBuilder<'d>
             }
         }
 
-        unsafe { bindings::xmlAddChild(rootptr, signature) };
+//        unsafe { libxml::tree::node::(rootptr, signature) };
 
         Ok(())
     }
