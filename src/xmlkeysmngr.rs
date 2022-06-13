@@ -38,7 +38,7 @@ impl XmlSecKeysMngr {
 
     pub fn cert_load_from_memory(self: &Self, data: &[u8], format: XmlSecKeyFormat) -> XmlSecResult<()> {
         let data_size: u64= data.len() as u64;
-        match unsafe{ bindings::xmlSecCryptoAppKeysMngrCertLoadMemory(self.0, data.as_ptr() , data_size, format as i32, bindings::xmlSecKeyDataTypeTrusted)} {
+        match unsafe{ bindings::xmlSecOpenSSLAppKeysMngrCertLoadMemory(self.0, data.as_ptr() , data_size, format as i32, bindings::xmlSecKeyDataTypeTrusted)} {
             0 => Ok(()),
             _ => Err(XmlSecError::CertLoadError)
         }

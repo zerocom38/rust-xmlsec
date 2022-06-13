@@ -17,9 +17,11 @@ build = "build.rs"
 [dependencies]
 libc = { version = "^0.2" }
 lazy_static = { version = "^1.4" }
+libxml = "0.3"
+openssl-sys = { version = "0.9" }
 
 [build-dependencies]
-#bindgen = { version = "^0.60" }
+bindgen = { version = "^0.60" }
 openssl-sys = { version = "0.9" }
 cc = "1.0"
 
