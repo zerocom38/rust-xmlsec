@@ -3,30 +3,27 @@
 //!
 use crate::bindings;
 
-use crate::XmlSecKey;
 use crate::XmlSecError;
+use crate::XmlSecKey;
 use crate::XmlSecResult;
 
-use crate::XmlNode;
+use crate::xmlkeysmngr::XmlSecKeysMngr;
 use crate::XmlDocument;
+use crate::XmlNode;
 
 use std::ffi::CString;
 use std::os::raw::c_uchar;
 use std::ptr::null_mut;
 
-
 /// Signature signing/veryfying context
-pub struct XmlSecSignatureContext
-{
+pub struct XmlSecSignatureContext {
     ctx: *mut bindings::xmlSecDSigCtx,
+    key_mngr: Option<XmlSecKeysMngr>,
 }
 
-
-impl XmlSecSignatureContext
-{
+impl XmlSecSignatureContext {
     /// Builds a context, ensuring xmlsec is initialized.
-    pub fn new() -> Self
-    {
+    pub fn new() -> Self {
         crate::xmlsec::guarantee_xmlsec_init();
 
         let ctx = unsafe { bindings::xmlSecDSigCtxCreate(null_mut()) };
@@ -35,17 +32,35 @@ impl XmlSecSignatureContext
             panic!("Failed to create dsig context");
         }
 
-        Self {ctx}
+        Self {
+            ctx,
+            key_mngr: None,
+        }
+    }
+
+    /// Builds a context, ensuring xmlsec is initialized.
+    pub fn new_with_keysManager(keys_mngr: XmlSecKeysMngr) -> Self {
+        crate::xmlsec::guarantee_xmlsec_init();
+
+        let ctx = unsafe { bindings::xmlSecDSigCtxCreate(keys_mngr.as_ptr()) };
+
+        if ctx.is_null() {
+            panic!("Failed to create dsig context");
+        }
+
+        Self {
+            ctx,
+            key_mngr: Some(keys_mngr),
+        }
     }
 
     /// Sets the key to use for signature or verification. In case a key had
     /// already been set, the latter one gets released in the optional return.
-    pub fn insert_key(&mut self, key: XmlSecKey) -> Option<XmlSecKey>
-    {
+    pub fn insert_key(&mut self, key: XmlSecKey) -> Option<XmlSecKey> {
         let mut old = None;
 
         unsafe {
-            if ! (*self.ctx).signKey.is_null() {
+            if !(*self.ctx).signKey.is_null() {
                 old = Some(XmlSecKey::from_ptr((*self.ctx).signKey));
             }
 
@@ -56,8 +71,7 @@ impl XmlSecSignatureContext
     }
 
     /// Releases a currently set key returning `Some(key)` or None otherwise.
-    pub fn release_key(&mut self) -> Option<XmlSecKey>
-    {
+    pub fn release_key(&mut self) -> Option<XmlSecKey> {
         unsafe {
             if (*self.ctx).signKey.is_null() {
                 None
@@ -72,8 +86,7 @@ impl XmlSecSignatureContext
     }
 
     /// UNTESTED
-    pub fn sign_node(&self, node: &XmlNode) -> XmlSecResult<()>
-    {
+    pub fn sign_node(&self, node: &XmlNode) -> XmlSecResult<()> {
         self.key_is_set()?;
 
         let node = node.node_ptr() as bindings::xmlNodePtr;
@@ -90,21 +103,17 @@ impl XmlSecSignatureContext
     ///
     /// [xmldoc]: http://kwarc.github.io/rust-libxml/libxml/tree/document/struct.Document.html
     /// [inskey]: struct.XmlSecSignatureContext.html#method.insert_key
-    pub fn sign_document(&self, doc: &XmlDocument) -> XmlSecResult<()>
-    {
+    pub fn sign_document(&self, doc: &XmlDocument) -> XmlSecResult<()> {
         self.key_is_set()?;
 
         let root = find_root(doc)?;
-        let sig  = find_signode(root)?;
+        let sig = find_signode(root)?;
 
         self.sign_node_raw(sig)
     }
 
     /// UNTESTED
-    pub fn verify_node(&self, node: &XmlNode) -> XmlSecResult<bool>
-    {
-        self.key_is_set()?;
-
+    pub fn verify_node(&self, node: &XmlNode) -> XmlSecResult<bool> {
         let node = node.node_ptr() as bindings::xmlNodePtr;
 
         self.verify_node_raw(node)
@@ -120,24 +129,20 @@ impl XmlSecSignatureContext
     ///
     /// [xmldoc]: http://kwarc.github.io/rust-libxml/libxml/tree/document/struct.Document.html
     /// [inskey]: struct.XmlSecSignatureContext.html#method.insert_key
-    pub fn verify_document(&self, doc: &XmlDocument) -> XmlSecResult<bool>
-    {
+    pub fn verify_document(&self, doc: &XmlDocument) -> XmlSecResult<bool> {
         self.key_is_set()?;
 
         let root = find_root(doc)?;
-        let sig  = find_signode(root)?;
+        let sig = find_signode(root)?;
 
         self.verify_node_raw(sig)
     }
 }
 
-
-impl XmlSecSignatureContext
-{
-    fn key_is_set(&self) -> XmlSecResult<()>
-    {
+impl XmlSecSignatureContext {
+    fn key_is_set(&self) -> XmlSecResult<()> {
         unsafe {
-            if ! (*self.ctx).signKey.is_null() {
+            if !(*self.ctx).signKey.is_null() {
                 Ok(())
             } else {
                 Err(XmlSecError::KeyNotLoaded)
@@ -145,8 +150,7 @@ impl XmlSecSignatureContext
         }
     }
 
-    fn sign_node_raw(&self, node: *mut bindings::xmlNode) -> XmlSecResult<()>
-    {
+    fn sign_node_raw(&self, node: *mut bindings::xmlNode) -> XmlSecResult<()> {
         let rc = unsafe { bindings::xmlSecDSigCtxSign(self.ctx, node) };
 
         if rc < 0 {
@@ -156,40 +160,33 @@ impl XmlSecSignatureContext
         }
     }
 
-    fn verify_node_raw(&self, node: *mut bindings::xmlNode) -> XmlSecResult<bool>
-    {
+    fn verify_node_raw(&self, node: *mut bindings::xmlNode) -> XmlSecResult<bool> {
         let rc = unsafe { bindings::xmlSecDSigCtxVerify(self.ctx, node) };
 
         if rc < 0 {
             return Err(XmlSecError::VerifyError);
         }
 
-        match unsafe { (*self.ctx).status }
-        {
-            bindings::xmlSecDSigStatus_xmlSecDSigStatusUnknown   => Ok(false),
+        match unsafe { (*self.ctx).status } {
+            bindings::xmlSecDSigStatus_xmlSecDSigStatusUnknown => Ok(false),
             bindings::xmlSecDSigStatus_xmlSecDSigStatusSucceeded => Ok(true),
-            bindings::xmlSecDSigStatus_xmlSecDSigStatusInvalid   => Ok(false),
+            bindings::xmlSecDSigStatus_xmlSecDSigStatusInvalid => Ok(false),
 
-            _ => panic!("Failed to interprete xmlSecDSigStatus code")
+            _ => panic!("Failed to interprete xmlSecDSigStatus code"),
         }
     }
 }
 
-
-impl Drop for XmlSecSignatureContext
-{
-    fn drop(&mut self)
-    {
-        unsafe { bindings::xmlSecDSigCtxDestroy(self.ctx) };
+impl Drop for XmlSecSignatureContext {
+    fn drop(&mut self) {
+        unsafe {
+            bindings::xmlSecDSigCtxDestroy(self.ctx);
+        };
     }
 }
 
-
-
-fn find_root(doc: &XmlDocument) -> XmlSecResult<*mut bindings::xmlNode>
-{
-    if let Some(root) = doc.get_root_element()
-    {
+fn find_root(doc: &XmlDocument) -> XmlSecResult<*mut bindings::xmlNode> {
+    if let Some(root) = doc.get_root_element() {
         let rawroot = root.node_ptr() as *mut bindings::xmlNode;
         let signode = find_signode(rawroot)?;
 
@@ -199,14 +196,16 @@ fn find_root(doc: &XmlDocument) -> XmlSecResult<*mut bindings::xmlNode>
     }
 }
 
-
-fn find_signode(tree: *mut bindings::xmlNode) -> XmlSecResult<*mut bindings::xmlNode>
-{
-    let signode = unsafe {bindings::xmlSecFindNode(
-        tree,
-        CString::new("Signature").unwrap().as_ptr() as *const c_uchar,
-        CString::new("http://www.w3.org/2000/09/xmldsig#").unwrap().as_ptr() as *const c_uchar,
-    ) };
+fn find_signode(tree: *mut bindings::xmlNode) -> XmlSecResult<*mut bindings::xmlNode> {
+    let name = CString::new("Signature").unwrap();
+    let ns = CString::new("http://www.w3.org/2000/09/xmldsig#").unwrap();
+    let signode = unsafe {
+        bindings::xmlSecFindNode(
+            tree,
+            name.as_ptr() as *const c_uchar,
+            ns.as_ptr() as *const c_uchar,
+        )
+    };
 
     if signode.is_null() {
         return Err(XmlSecError::NodeNotFound);

@@ -86,6 +86,8 @@ fn init_crypto_app()
          }
      }
 
+     println!("init_crypto_app... done!");
+
 //    let rc = unsafe { bindings::xmlSecOpenSSLAppInit(null()) };
 
  //   if rc < 0 {

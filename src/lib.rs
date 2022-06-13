@@ -26,6 +26,7 @@ mod keys;
 mod error;
 mod crypto;
 mod xmlsec;
+mod xmlkeysmngr;
 mod xmldsig;
 mod templates;
 mod transforms;
