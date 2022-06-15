@@ -1,1 +1,1 @@
-tests/resources/* text=auto
+*.xml text=input
