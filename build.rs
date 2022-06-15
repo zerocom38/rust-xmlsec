@@ -4,7 +4,9 @@
 //use bindgen::Builder as BindgenBuilder;
 
 use bindgen::Builder as BindgenBuilder;
+use std::collections::HashMap;
 use std::env;
+use std::io::{BufRead, BufReader, Write};
 use std::path::PathBuf;
 
 const BINDINGS: &str = "bindings.rs";
@@ -165,7 +167,12 @@ fn main() {
             "xmlsec/src/openssl/x509vfy.c",
         ];
 
-        let mut inc_strs: Vec<String> = libxml2_inc_strs
+        let path_out = PathBuf::from(env::var("OUT_DIR").unwrap());
+        let path_bindings = path_out.join(BINDINGS);
+
+        create_version_header().unwrap();
+
+        let inc_strs: Vec<String> = libxml2_inc_strs
             .clone()
             .iter()
             .map(|inc| format!("-I{}", inc))
@@ -174,6 +181,7 @@ fn main() {
         cc::Build::new()
             .files(xmlsec_sources)
             .include("xmlsec/include")
+            .include(&path_out)
             .includes(libxml2_inc_strs)
             .define("XMLSEC_NO_XSLT", "1")
             .define("XMLSEC_STATIC", "1")
@@ -192,10 +200,12 @@ fn main() {
             "-DXMLSEC_STATIC".to_string(),
         ];
 
+        let inc_path = format!("-I{}", path_out.to_string_lossy().to_string());
+
         let bindbuild = BindgenBuilder::default()
             .header("bindings.h")
             .clang_args(defs)
-            .clang_args(["-Ixmlsec/include"])
+            .clang_args(["-Ixmlsec/include", inc_path.as_str()])
             .clang_args(inc_strs)
             .allowlist_var(r#"(\w*xmlSec\w*)"#)
             .allowlist_type(r#"(\w*xmlSec\w*)"#)
@@ -206,8 +216,6 @@ fn main() {
 
         let bindings = bindbuild.generate().expect("Unable to generate bindings");
 
-        let path_out = PathBuf::from(env::var("OUT_DIR").unwrap());
-        let path_bindings = path_out.join(BINDINGS);
         bindings
             .write_to_file(path_bindings)
             .expect("Couldn't write bindings!");
@@ -313,4 +321,80 @@ mod libxml2_vcpkg_dep {
         *includes = lib.include_paths;
         *flags = defs;
     }
+}
+
+fn create_version_header() -> Result<(), std::io::Error> {
+    let path_out = PathBuf::from(env::var("OUT_DIR").unwrap());
+
+    match std::fs::create_dir_all(path_out.clone().join("xmlsec")) {
+        Ok(_) => {}
+        Err(e) => match e {
+            e if e.kind() == std::io::ErrorKind::AlreadyExists => {}
+            _ => panic!("Cannot create output directory for version.h"),
+        },
+    };
+
+    let config_reader = BufReader::new(std::fs::File::open("xmlsec/configure.ac").unwrap());
+    let mut xml_major_version = String::default();
+    let var_names = vec![
+        "XMLSEC_VERSION_MAJOR",
+        "XMLSEC_VERSION_MINOR",
+        "XMLSEC_VERSION_SUBMINOR",
+    ];
+    let mut replace_map: HashMap<String, String> = HashMap::new();
+
+    for line in config_reader.lines() {
+        if let Ok(l) = line {
+            let kv: Vec<&str> = l.split("=").collect();
+            if kv.len() != 2 {
+                continue;
+            }
+            if var_names.contains(&kv[0]) {
+                replace_map.insert(kv[0].to_string(), kv[1].to_string());
+            }
+        }
+    }
+
+    replace_map.insert(
+        "XMLSEC_VERSION".to_string(),
+        format!(
+            "{}.{}.{}",
+            replace_map.get("XMLSEC_VERSION_MAJOR").unwrap(),
+            replace_map.get("XMLSEC_VERSION_MINOR").unwrap(),
+            replace_map.get("XMLSEC_VERSION_SUBMINOR").unwrap()
+        ),
+    );
+
+    let xml_version_major_number: i32 = replace_map
+        .get("XMLSEC_VERSION_MAJOR")
+        .unwrap()
+        .parse()
+        .unwrap();
+    let xml_version_minor_number: i32 = replace_map
+        .get("XMLSEC_VERSION_MINOR")
+        .unwrap()
+        .parse()
+        .unwrap();
+    replace_map.insert(
+        "XMLSEC_VERSION_INFO".to_string(),
+        format!(
+            "{}:{}:{}",
+            xml_version_major_number + xml_version_minor_number,
+            replace_map.get("XMLSEC_VERSION_SUBMINOR").unwrap(),
+            replace_map.get("XMLSEC_VERSION_MINOR").unwrap()
+        ),
+    );
+
+    let mut version_header = std::fs::read_to_string("xmlsec/include/xmlsec/version.h.in").unwrap();
+
+    for vars in replace_map {
+        let key = format!("@{}@", vars.0);
+        version_header = version_header.replace(&key, &vars.1);
+    }
+    std::fs::write(
+        path_out.clone().join("xmlsec").join("version.h"),
+        version_header,
+    )
+    .unwrap();
+    Ok(())
 }
