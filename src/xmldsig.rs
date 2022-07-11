@@ -1,7 +1,6 @@
 //!
 //! Wrapper for XmlSec Signature Context
 //!
-use libc::bind;
 
 use crate::bindings;
 
@@ -13,7 +12,6 @@ use crate::xmlkeysmngr::XmlSecKeysMngr;
 use crate::XmlDocument;
 use crate::XmlNode;
 
-use std::ffi::CString;
 use std::os::raw::c_uchar;
 use std::ptr::null_mut;
 
@@ -41,7 +39,7 @@ impl XmlSecSignatureContext {
     }
 
     /// Builds a context, ensuring xmlsec is initialized.
-    pub fn new_with_keysManager(keys_mngr: XmlSecKeysMngr) -> Self {
+    pub fn with_keys_manager(keys_mngr: XmlSecKeysMngr) -> Self {
         crate::xmlsec::guarantee_xmlsec_init();
 
         let ctx = unsafe { bindings::xmlSecDSigCtxCreate(keys_mngr.as_ptr()) };
@@ -144,7 +142,7 @@ impl XmlSecSignatureContext {
 impl XmlSecSignatureContext {
     fn key_is_set(&self) -> XmlSecResult<()> {
         unsafe {
-            if !(*self.ctx).signKey.is_null() {
+            if !(*self.ctx).signKey.is_null() || self.key_mngr.is_some() {
                 Ok(())
             } else {
                 Err(XmlSecError::KeyNotLoaded)

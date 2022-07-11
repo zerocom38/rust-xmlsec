@@ -1,19 +1,11 @@
 //!
 //! Wrapper for XmlSec Signature Context
 //!
-use crate::XmlSecKeyFormat;
 use crate::bindings;
+use crate::XmlSecKeyFormat;
 
 use crate::XmlSecError;
-use crate::XmlSecKey;
 use crate::XmlSecResult;
-
-use crate::XmlDocument;
-use crate::XmlNode;
-
-use std::ffi::CString;
-use std::os::raw::c_uchar;
-use std::ptr::null_mut;
 
 /// Signature signing/veryfying context
 pub struct XmlSecKeysMngr(*mut bindings::xmlSecKeysMngr);
@@ -29,18 +21,40 @@ impl XmlSecKeysMngr {
             panic!("Failed to create keysManager");
         }
 
+        unsafe {
+            if bindings::xmlSecOpenSSLAppDefaultKeysMngrInit(keys_mngr) < 0 {
+                panic!("Failed to init keysManager");
+            }
+        }
+
         Self(keys_mngr)
     }
 
-    pub unsafe fn as_ptr(&self) -> *mut bindings::xmlSecKeysMngr {
+    /// # Safety
+    ///
+    /// Returns a raw pointer to the underlying xmlsec structure.
+    pub(crate) unsafe fn as_ptr(&self) -> *mut bindings::xmlSecKeysMngr {
         self.0
     }
 
-    pub fn cert_load_from_memory(self: &Self, data: &[u8], format: XmlSecKeyFormat) -> XmlSecResult<()> {
-        let data_size: u64= data.len() as u64;
-        match unsafe{ bindings::xmlSecOpenSSLAppKeysMngrCertLoadMemory(self.0, data.as_ptr() , data_size, format as i32, bindings::xmlSecKeyDataTypeTrusted)} {
+    /// Load certificate from memory and store it in keys manager
+    pub fn cert_load_from_memory(
+        self: &Self,
+        data: &[u8],
+        format: XmlSecKeyFormat,
+    ) -> XmlSecResult<()> {
+        let data_size: u64 = data.len() as u64;
+        match unsafe {
+            bindings::xmlSecOpenSSLAppKeysMngrCertLoadMemory(
+                self.0,
+                data.as_ptr(),
+                data_size,
+                format as i32,
+                bindings::xmlSecKeyDataTypeTrusted,
+            )
+        } {
             0 => Ok(()),
-            _ => Err(XmlSecError::CertLoadError)
+            _ => Err(XmlSecError::CertLoadError),
         }
     }
 }
