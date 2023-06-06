@@ -43,13 +43,13 @@ impl XmlSecKeysMngr {
         data: &[u8],
         format: XmlSecKeyFormat,
     ) -> XmlSecResult<()> {
-        let data_size: u64 = data.len() as u64;
+        let data_size = data.len();
         match unsafe {
             bindings::xmlSecOpenSSLAppKeysMngrCertLoadMemory(
                 self.0,
                 data.as_ptr(),
                 data_size,
-                format as i32,
+                format.into_raw(),
                 bindings::xmlSecKeyDataTypeTrusted,
             )
         } {
