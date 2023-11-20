@@ -10,15 +10,12 @@ use std::env;
 use std::io::{BufRead, BufReader};
 use std::path::PathBuf;
 
-use crate::deps::find_openssl;
-
 const BINDINGS: &str = "bindings.rs";
 
 fn main() {
     let mut defs: Vec<String> = Vec::new();
     let mut includes: Vec<PathBuf> = Vec::new();
     deps::find_xmlsec(&mut defs, &mut includes);
-    println!("FOUND XMLSEC: {:?}", includes);
 
     let path_out = PathBuf::from(env::var("OUT_DIR").unwrap());
     let path_bindings = path_out.join(BINDINGS);
@@ -136,8 +133,6 @@ fn vendored_xmlsec() {
         .compile("libxmlsec1-static.a");
 
     let defs: Vec<String> = vec![
-        //            "-DXMLSEC_STATIC".to_string(),
-        //            "-DXMLSEC_NO_CRYPTO_DYNAMIC_LOADING".to_string(),
         "-DXMLSEC_NO_CRYPTO_DYNAMIC_LOADING".to_string(),
         "-DXMLSEC_DEFAULT_CRYPTO=\"openssl\"".to_string(),
         "-DXMLSEC_CRYPTO_OPENSSL=1".to_string(),
