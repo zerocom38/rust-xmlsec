@@ -15,12 +15,11 @@ keywords = ["xml", "xmlsec", "dsig"]
 build = "build.rs"
 
 [dependencies]
-libc = { version = "^0.2" }
 lazy_static = { version = "^1.4" }
 libxml = "0.3"
 
 [build-dependencies]
-bindgen = { version = "^0.65" }
+bindgen = { version = "^0.69" }
 cc = "1.0"
 
 
