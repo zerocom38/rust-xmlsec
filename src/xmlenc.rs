@@ -2,8 +2,6 @@
 //! Wrapper for XmlSec Signature Context
 //!
 
-use libc::bind;
-
 use crate::bindings;
 
 use crate::XmlSecError;
@@ -11,10 +9,8 @@ use crate::XmlSecKey;
 use crate::XmlSecResult;
 
 use crate::xmlkeysmngr::XmlSecKeysMngr;
-use crate::XmlDocument;
 use crate::XmlNode;
 
-use std::os::raw::c_uchar;
 use std::ptr::null_mut;
 
 /// Signature signing/veryfying context

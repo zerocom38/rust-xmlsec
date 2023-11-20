@@ -24,6 +24,7 @@ mod crypto;
 mod error;
 mod exts;
 mod keys;
+mod nodeset;
 mod templates;
 mod transforms;
 mod xmldsig;
@@ -42,6 +43,8 @@ pub use self::error::XmlSecResult;
 
 pub use self::crypto::XmlSecSignatureMethod;
 
+pub use self::nodeset::XmlSecNodeSet;
+
 pub use self::xmldsig::XmlSecSignatureContext;
 pub use self::xmlenc::XmlSecEncryptionContext;
 pub use self::xmlenc::XmlSecEncryptionContextMode;
@@ -52,6 +55,9 @@ pub use self::templates::XmlDocumentTemplateBuilder as XmlSecDocumentTemplateBui
 pub use self::templates::XmlDocumentTemplating as XmlSecDocumentTemplating;
 
 pub use self::transforms::XmlSecCanonicalizationMethod;
+pub use self::transforms::XmlSecTransform;
+pub use self::transforms::XmlSecTransformCtx;
+pub use self::transforms::XmlSecTransformOperation;
 
 // export preambles
 pub mod template {
@@ -63,5 +69,6 @@ pub mod template {
         pub use crate::XmlSecDocumentTemplating;
         pub use crate::XmlSecSignatureMethod;
         pub use crate::XmlSecTemplateBuilder;
+        pub use crate::XmlSecTransformOperation;
     }
 }
