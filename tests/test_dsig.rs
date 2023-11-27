@@ -1,47 +1,54 @@
 //!
 //! Unit Tests for DSig Context
 //!
+use xmlsec::XmlSecDocumentExt;
 use xmlsec::XmlSecKey;
+use xmlsec::XmlSecKeyDataType;
 use xmlsec::XmlSecKeyFormat;
 use xmlsec::XmlSecSignatureContext;
-use xmlsec::XmlSecDocumentExt;
 
 use libxml::parser::Parser as XmlParser;
 
-
 #[test]
-fn test_dsig_context_creation()
-{
+fn test_dsig_context_creation() {
     XmlSecSignatureContext::new();
 }
 
-
 #[test]
-fn test_dsig_key_setting()
-{
+fn test_dsig_key_setting() {
     let mut ctx = XmlSecSignatureContext::new();
 
-    let key = XmlSecKey::from_file("tests/resources/key.pem", XmlSecKeyFormat::Pem, None)
-        .expect("Failed to properly load key for test");
+    let key = XmlSecKey::from_file(
+        "tests/resources/key.pem",
+        XmlSecKeyDataType::Unknown,
+        XmlSecKeyFormat::Pem,
+        None,
+    )
+    .expect("Failed to properly load key for test");
 
     let key_ptr = unsafe { key.as_ptr() };
 
     let oldkey = ctx.insert_key(key);
 
-    assert!(oldkey.is_none(), "It should never have been set at this point");
+    assert!(
+        oldkey.is_none(),
+        "It should never have been set at this point"
+    );
 
-    let newkey = ctx.release_key()
+    let newkey = ctx
+        .release_key()
         .expect("Should have had a set key now being released");
 
     let newkey_ptr = unsafe { newkey.as_ptr() };
 
-    assert_eq!(key_ptr, newkey_ptr, "Key should have remained to be exactly the same");
+    assert_eq!(
+        key_ptr, newkey_ptr,
+        "Key should have remained to be exactly the same"
+    );
 }
 
-
 #[test]
-fn test_signing_template()
-{
+fn test_signing_template() {
     let ctx = common_setup_context_and_key();
 
     let doc = XmlParser::default()
@@ -53,25 +60,21 @@ fn test_signing_template()
     }
 
     // compare signature results
-    let reference = String::from_utf8(
-        include_bytes!("./resources/sign1-res.xml").to_vec()
-    ).unwrap();
+    let reference =
+        String::from_utf8(include_bytes!("./resources/sign1-res.xml").to_vec()).unwrap();
 
     assert_eq!(doc.to_string(), reference);
 }
 
-
 #[test]
-fn test_verify_template_signature()
-{
+fn test_verify_template_signature() {
     let ctx = common_setup_context_and_key();
 
     let doc = XmlParser::default()
         .parse_file("tests/resources/sign1-res.xml")
         .expect("Failed to load signature for verification testing");
 
-    match ctx.verify_document(&doc)
-    {
+    match ctx.verify_document(&doc) {
         Ok(valid) => {
             if !valid {
                 panic!("Signature in testing resources should have returned to be valid");
@@ -84,10 +87,8 @@ fn test_verify_template_signature()
     }
 }
 
-
 #[test]
-fn test_verify_custom_id_signature()
-{
+fn test_verify_custom_id_signature() {
     let ctx = common_setup_context_and_key();
 
     let doc = XmlParser::default()
@@ -97,8 +98,7 @@ fn test_verify_custom_id_signature()
     doc.specify_idattr("//sig:Data", "ThisID", Some(&[("sig", "urn:envelope")]))
         .expect("Unable to set 'ThisID' as the ID attribute name");
 
-    match ctx.verify_document(&doc)
-    {
+    match ctx.verify_document(&doc) {
         Ok(valid) => {
             if !valid {
                 panic!("Signature in testing resources should have returned to be valid");
@@ -111,13 +111,16 @@ fn test_verify_custom_id_signature()
     }
 }
 
+fn common_setup_context_and_key() -> XmlSecSignatureContext {
+    let mut ctx = XmlSecSignatureContext::new();
 
-fn common_setup_context_and_key() -> XmlSecSignatureContext
-{
-   let mut ctx = XmlSecSignatureContext::new();
-
-   let key = XmlSecKey::from_file("tests/resources/key.pem", XmlSecKeyFormat::Pem, None)
-       .expect("Failed to properly load key for test");
+    let key = XmlSecKey::from_file(
+        "tests/resources/key.pem",
+        XmlSecKeyDataType::Unknown,
+        XmlSecKeyFormat::Pem,
+        None,
+    )
+    .expect("Failed to properly load key for test");
 
     ctx.insert_key(key);
 

@@ -1,6 +1,8 @@
 //!
 //! Wrapper for XmlSec Key and Certificate management Context
 //!
+ 
+#![allow(missing_docs)]
 use crate::bindings;
 
 use crate::XmlSecError;
@@ -36,6 +38,24 @@ impl XmlSecKeyFormat {
     }
 }
 
+/// key data tyoe for loading
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+pub struct XmlSecKeyDataType(u32);
+
+bitflags::bitflags! {
+    impl XmlSecKeyDataType: u32 {
+        const Unknown = bindings::xmlSecKeyDataTypeUnknown;
+        const None = bindings::xmlSecKeyDataTypeNone;
+        const Public = bindings::xmlSecKeyDataTypePublic;
+        const Private = bindings::xmlSecKeyDataTypePrivate;
+        const Symmetric = bindings::xmlSecKeyDataTypeSymmetric;
+        const Session = bindings::xmlSecKeyDataTypeSession;
+        const Permanent = bindings::xmlSecKeyDataTypePermanent;
+        const Trusted = bindings::xmlSecKeyDataTypeTrusted;
+        const Any = bindings::xmlSecKeyDataTypeAny;
+    }
+}
+
 /// Key with which we sign/verify signatures or encrypt data. Used by [`XmlSecSignatureContext`][sigctx].
 ///
 /// [sigctx]: struct.XmlSecSignatureContext.html
@@ -47,6 +67,7 @@ impl XmlSecKey {
     /// decrypt/unlock.
     pub fn from_file(
         path: &str,
+        key_type: XmlSecKeyDataType,
         format: XmlSecKeyFormat,
         password: Option<&str>,
     ) -> XmlSecResult<Self> {
@@ -62,8 +83,9 @@ impl XmlSecKey {
 
         // Load key from file
         let key = unsafe {
-            bindings::xmlSecOpenSSLAppKeyLoad(
+            bindings::xmlSecOpenSSLAppKeyLoadEx(
                 cpath.as_ptr(),
+                key_type.bits(),
                 format.into_raw(),
                 cpasswd_ptr,
                 null_mut(),

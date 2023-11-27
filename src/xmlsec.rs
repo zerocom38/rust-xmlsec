@@ -17,6 +17,11 @@ pub fn guarantee_xmlsec_init() {
         .lock()
         .expect("Unable to lock global xmlsec initalization wrapper");
 
+    let ver = unsafe { *openssl_sys::OpenSSL_version(0) };
+    if ver < 1 {
+        panic!("OpenSSL version 1.0.0 or higher is required");
+    }
+
     if inner.is_none() {
         *inner = Some(XmlSecContext::new());
     }

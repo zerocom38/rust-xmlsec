@@ -2,13 +2,19 @@
 //! Unit Tests for Key
 //!
 use xmlsec::XmlSecKey;
+use xmlsec::XmlSecKeyDataType;
 use xmlsec::XmlSecKeyFormat;
 use xmlsec::XmlSecKeysMngr;
 
 #[test]
 fn test_key_cert_loading_file() {
-    let key = XmlSecKey::from_file("tests/resources/key.pem", XmlSecKeyFormat::Pem, None)
-        .expect("Failed to properly load key for test");
+    let key = XmlSecKey::from_file(
+        "tests/resources/key.pem",
+        XmlSecKeyDataType::Unknown,
+        XmlSecKeyFormat::Pem,
+        None,
+    )
+    .expect("Failed to properly load key for test");
 
     key.load_cert_from_file("tests/resources/key.crt", XmlSecKeyFormat::Pem)
         .expect("Failed to properly load key certificate for test");
@@ -31,8 +37,13 @@ fn test_key_cert_loading_memory() {
 
 #[test]
 fn test_key_name_handing() {
-    let mut key = XmlSecKey::from_file("tests/resources/key.pem", XmlSecKeyFormat::Pem, None)
-        .expect("Failed to properly load key for test");
+    let mut key = XmlSecKey::from_file(
+        "tests/resources/key.pem",
+        XmlSecKeyDataType::Unknown,
+        XmlSecKeyFormat::Pem,
+        None,
+    )
+    .expect("Failed to properly load key for test");
 
     key.set_name("testname");
 

@@ -36,6 +36,7 @@ mod xmlsec;
 pub use self::exts::XmlSecDocumentExt;
 
 pub use self::keys::XmlSecKey;
+pub use self::keys::XmlSecKeyDataType;
 pub use self::keys::XmlSecKeyFormat;
 
 pub use self::error::XmlSecError;
