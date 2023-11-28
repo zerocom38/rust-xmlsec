@@ -1,10 +1,6 @@
 //!
 //! Wrapper for XmlSec NodeSet Methods
 //!
-use std::ptr::null;
-
-use libxml::tree::node;
-
 use crate::bindings;
 use crate::XmlDocument;
 use crate::XmlNode;

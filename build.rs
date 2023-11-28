@@ -40,7 +40,6 @@ fn main() {
         .expect("Couldn't write bindings!");
 }
 
-#[cfg(any(target_family = "unix", target_os = "macos"))]
 mod deps {
 
     use std::path::PathBuf;
@@ -91,20 +90,19 @@ mod deps {
         crate::vendored::compile_xmlsec(flags, includes);
     }
 
-    #[cfg(target_os = "windows")]
-    pub fn find_openssl(flags: &mut Vec<String>, includes: &mut Vec<PathBuf>) {
-        if let Ok(_) = vcpkg::find_package("openssl") {
-            // Set environment variables for openssl-sys
-            let openssl_inc_dir = "C:/vcpkg/installed/x64-windows/include".to_string();
-            println!("cargo:rustc-link-lib=ssl");
-            println!("cargo:rustc-link-lib=crypto");
-            println!("cargo:include={}", openssl_inc_dir);
-            return Some(openssl_inc_dir);
-        }
-    }
+    // #[cfg(target_os = "windows")]
+    // pub fn find_openssl(flags: &mut Vec<String>, includes: &mut Vec<PathBuf>) {
+    //     if let Ok(_) = vcpkg::find_package("openssl") {
+    //         // Set environment variables for openssl-sys
+    //         let openssl_inc_dir = "C:/vcpkg/installed/x64-windows/include".to_string();
+    //         println!("cargo:rustc-link-lib=ssl");
+    //         println!("cargo:rustc-link-lib=crypto");
+    //         println!("cargo:include={}", openssl_inc_dir);
+    //         return Some(openssl_inc_dir);
+    //     }
+    // }
 
-    #[cfg(any(target_os = "linux", target_os = "macos"))]
-    pub fn find_openssl(flags: &mut Vec<String>, includes: &mut Vec<PathBuf>) {
+    pub fn find_openssl(_flags: &mut Vec<String>, includes: &mut Vec<PathBuf>) {
         let openssl_inc_dir = std::env::var("DEP_OPENSSL_INCLUDE").expect("openssl-sys not found");
 
         includes.push(openssl_inc_dir.into());
@@ -232,7 +230,6 @@ mod vendored {
         };
 
         let config_reader = BufReader::new(std::fs::File::open("xmlsec/configure.ac").unwrap());
-        let mut xml_major_version = String::default();
         let var_names = vec![
             "XMLSEC_VERSION_MAJOR",
             "XMLSEC_VERSION_MINOR",
