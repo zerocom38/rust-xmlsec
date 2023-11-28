@@ -128,7 +128,7 @@ impl XmlSecTransform {
     /// Sets the operation.
     pub fn set_operation(&mut self, operation: XmlSecTransformOperation) -> &mut Self {
         unsafe {
-            (*self.ctx).operation = operation as u32;
+            (*self.ctx).operation = operation as bindings::xmlSecTransformOperation;
         }
         self
     }
