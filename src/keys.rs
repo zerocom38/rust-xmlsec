@@ -19,22 +19,21 @@ use std::ffi::CString;
 
 /// x509 key format.
 #[allow(missing_docs)]
-#[repr(u32)]
 pub enum XmlSecKeyFormat {
-    Unknown = bindings::xmlSecKeyDataFormat_xmlSecKeyDataFormatUnknown,
-    Binary = bindings::xmlSecKeyDataFormat_xmlSecKeyDataFormatBinary,
-    Pem = bindings::xmlSecKeyDataFormat_xmlSecKeyDataFormatPem,
-    Der = bindings::xmlSecKeyDataFormat_xmlSecKeyDataFormatDer,
-    Pkcs8Pem = bindings::xmlSecKeyDataFormat_xmlSecKeyDataFormatPkcs8Pem,
-    Pkcs8Der = bindings::xmlSecKeyDataFormat_xmlSecKeyDataFormatPkcs8Der,
-    Pkcs12 = bindings::xmlSecKeyDataFormat_xmlSecKeyDataFormatPkcs12,
-    CertPem = bindings::xmlSecKeyDataFormat_xmlSecKeyDataFormatCertPem,
-    CertDer = bindings::xmlSecKeyDataFormat_xmlSecKeyDataFormatCertDer,
+    Unknown = bindings::xmlSecKeyDataFormat_xmlSecKeyDataFormatUnknown as isize,
+    Binary = bindings::xmlSecKeyDataFormat_xmlSecKeyDataFormatBinary as isize,
+    Pem = bindings::xmlSecKeyDataFormat_xmlSecKeyDataFormatPem as isize,
+    Der = bindings::xmlSecKeyDataFormat_xmlSecKeyDataFormatDer as isize,
+    Pkcs8Pem = bindings::xmlSecKeyDataFormat_xmlSecKeyDataFormatPkcs8Pem as isize,
+    Pkcs8Der = bindings::xmlSecKeyDataFormat_xmlSecKeyDataFormatPkcs8Der as isize,
+    Pkcs12 = bindings::xmlSecKeyDataFormat_xmlSecKeyDataFormatPkcs12 as isize,
+    CertPem = bindings::xmlSecKeyDataFormat_xmlSecKeyDataFormatCertPem as isize,
+    CertDer = bindings::xmlSecKeyDataFormat_xmlSecKeyDataFormatCertDer as isize,
 }
 
 impl XmlSecKeyFormat {
-    pub(crate) fn into_raw(self) -> u32 {
-        self as u32
+    pub(crate) fn into_raw(self) -> bindings::xmlSecKeyDataFormat {
+        self as bindings::xmlSecKeyDataFormat
     }
 }
 
