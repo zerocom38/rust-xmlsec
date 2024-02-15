@@ -137,6 +137,13 @@ impl XmlSecSignatureContext {
 
         self.verify_node_raw(sig)
     }
+
+    /// Sets the verification time to be used for the signature verification.
+    pub fn set_verification_time(&mut self, time: i64) {
+        unsafe {
+            (*self.ctx).keyInfoReadCtx.certsVerificationTime = time;
+        }
+    }
 }
 
 impl XmlSecSignatureContext {
