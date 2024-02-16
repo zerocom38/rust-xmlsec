@@ -11,6 +11,7 @@ use crate::XmlSecResult;
 use crate::xmlkeysmngr::XmlSecKeysMngr;
 use crate::XmlDocument;
 use crate::XmlNode;
+use crate::XmlSecSignatureMethod;
 
 use std::os::raw::c_uchar;
 use std::ptr::null_mut;
@@ -142,6 +143,19 @@ impl XmlSecSignatureContext {
     pub fn set_verification_time(&mut self, time: i64) {
         unsafe {
             (*self.ctx).keyInfoReadCtx.certsVerificationTime = time;
+        }
+    }
+
+    /// Gets the signature method used in the context.
+    pub fn signature_method(&self) -> Option<XmlSecSignatureMethod> {
+        unsafe {
+            let signmethod = (*(*self.ctx).signMethod).id;
+
+            if signmethod.is_null() {
+                None
+            } else {
+                XmlSecSignatureMethod::from_method(signmethod)
+            }
         }
     }
 }
