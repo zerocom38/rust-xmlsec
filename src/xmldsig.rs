@@ -158,6 +158,26 @@ impl XmlSecSignatureContext {
             }
         }
     }
+
+    /// Gets the signature method name used in the context.
+    pub fn signature_method_name(&self) -> Option<String> {
+        unsafe {
+            let signmethod = (*(*self.ctx).signMethod).id;
+
+            if signmethod.is_null() {
+                None
+            } else {
+                let name = (*signmethod).name;
+
+                if name.is_null() {
+                    None
+                } else {
+                    let name = std::ffi::CStr::from_ptr(name as *const i8);
+                    Some(name.to_string_lossy().into_owned())
+                }
+            }
+        }
+    }
 }
 
 impl XmlSecSignatureContext {
