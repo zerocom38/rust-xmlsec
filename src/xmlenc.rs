@@ -79,7 +79,7 @@ impl XmlSecEncryptionContext {
     }
 
     /// decrypt node
-    pub fn decrypt(self, node: &XmlNode) -> XmlSecResult<&[u8]> {
+    pub fn decrypt(self, node: &XmlNode) -> XmlSecResult<Vec<u8>> {
         let node = node.node_ptr() as bindings::xmlNodePtr;
 
         let result = unsafe { bindings::xmlSecEncCtxDecrypt(self.ctx, node) };
@@ -96,7 +96,10 @@ impl XmlSecEncryptionContext {
                 return Err(XmlSecError::SigningError);
             }
 
-            Ok(std::slice::from_raw_parts(p, s))
+            let buf = std::slice::from_raw_parts(p, s);
+            let vec = buf.to_vec();
+
+            Ok(vec)
         }
     }
 }
