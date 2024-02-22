@@ -11,6 +11,7 @@ use crate::XmlSecResult;
 use crate::xmlkeysmngr::XmlSecKeysMngr;
 use crate::XmlNode;
 
+use std::pin::Pin;
 use std::ptr::null_mut;
 
 /// Signature signing/veryfying context
@@ -79,7 +80,7 @@ impl XmlSecEncryptionContext {
     }
 
     /// decrypt node
-    pub fn decrypt(self, node: &XmlNode) -> XmlSecResult<Vec<u8>> {
+    pub fn decrypt(self, node: &XmlNode) -> XmlSecResult<Pin<&[u8]>> {
         let node = node.node_ptr() as bindings::xmlNodePtr;
 
         let result = unsafe { bindings::xmlSecEncCtxDecrypt(self.ctx, node) };
@@ -97,9 +98,8 @@ impl XmlSecEncryptionContext {
             }
 
             let buf = std::slice::from_raw_parts(p, s);
-            let vec = buf.to_vec();
 
-            Ok(vec)
+            Ok(Pin::new(buf))
         }
     }
 }
