@@ -80,7 +80,7 @@ impl XmlSecEncryptionContext {
     }
 
     /// decrypt node
-    pub fn decrypt(self, node: &XmlNode) -> XmlSecResult<Pin<&[u8]>> {
+    pub fn decrypt<'a>(self, node: &XmlNode) -> XmlSecResult<&'a [u8]> {
         let node = node.node_ptr() as bindings::xmlNodePtr;
 
         let result = unsafe { bindings::xmlSecEncCtxDecrypt(self.ctx, node) };
@@ -99,7 +99,7 @@ impl XmlSecEncryptionContext {
 
             let buf = std::slice::from_raw_parts(p, s);
 
-            Ok(Pin::new(buf))
+            Ok(buf)
         }
     }
 }
