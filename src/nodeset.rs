@@ -22,7 +22,7 @@ impl XmlSecNodeSet {
 
         let ctx = unsafe {
             let doc_ptr = doc.doc_ptr() as *mut bindings::xmlDoc;
-            let mut node_set_ptr: *mut bindings::_xmlNodeSet = std::ptr::null_mut();
+            let node_set_ptr: *mut bindings::_xmlNodeSet = std::ptr::null_mut();
             bindings::xmlSecNodeSetCreate(
                 doc_ptr,
                 //                node_set.as_mut() as *mut bindings::_xmlNodeSet,

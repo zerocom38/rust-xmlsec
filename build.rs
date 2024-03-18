@@ -206,6 +206,7 @@ mod vendored {
             .define("XMLSEC_DEFAULT_CRYPTO", "\"openssl\"")
             .define("XMLSEC_CRYPTO_OPENSSL", "1")
             .define("XMLSEC_NO_CRYPTO_DYNAMIC_LOADING", "1")
+            .flag_if_supported("-wd4130")
             .compile("libxmlsec1-static.a");
 
         let defs: Vec<String> = vec![

@@ -13,6 +13,7 @@ use crate::XmlDocument;
 use crate::XmlNode;
 use crate::XmlSecSignatureMethod;
 
+use std::mem::forget;
 use std::os::raw::c_uchar;
 use std::ptr::null_mut;
 
@@ -115,6 +116,8 @@ impl XmlSecSignatureContext {
 
     /// UNTESTED
     pub fn verify_node(&self, node: &XmlNode) -> XmlSecResult<bool> {
+        self.key_is_set()?;
+
         let node = node.node_ptr() as bindings::xmlNodePtr;
 
         self.verify_node_raw(node)
@@ -144,6 +147,26 @@ impl XmlSecSignatureContext {
         unsafe {
             (*self.ctx).keyInfoReadCtx.certsVerificationTime = time;
         }
+    }
+
+    /// # Safety
+    ///
+    /// Returns a raw pointer to the underlying xmlsec signature context. Beware that it is still managed by this
+    /// wrapping object and will be deallocated once `self` gets dropped.
+    pub unsafe fn as_ptr(&self) -> *mut bindings::xmlSecDSigCtx {
+        self.ctx
+    }
+
+    /// # Safety
+    ///
+    /// Returns a raw pointer to the underlying xmlsec signature context. Beware that it will be forgotten by this
+    /// wrapping object and *must* be deallocated manually by the callee.
+    pub unsafe fn into_ptr(self) -> *mut bindings::xmlSecDSigCtx {
+        let ctx = self.ctx; // keep a copy of the pointer
+
+        forget(self); // release our copy of the pointer without deallocating it
+
+        ctx // return the only remaining copy
     }
 
     /// Gets the signature method used in the context.

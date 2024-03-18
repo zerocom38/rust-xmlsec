@@ -1,6 +1,7 @@
 //!
 //! Wrapper for DSIG Nodes Templating
 //!
+
 use crate::bindings;
 
 use crate::XmlDocument;
@@ -27,6 +28,11 @@ pub trait TemplateBuilder {
     ///
     /// [sig]: ./crypto/openssl/enum.XmlSecSignatureMethod.html
     fn signature(self, sig: XmlSecSignatureMethod) -> Self;
+
+    /// Sets cryptographic digest for `<dsig:Reference/>. See: [`XmlSecSignatureMethod`][sig].
+    ///
+    /// [sig]: ./crypto/openssl/enum.XmlSecSignatureMethod.html
+    fn reference_signature(self, sig: XmlSecSignatureMethod) -> Self;
 
     /// Sets signature subject node URI
     fn uri(self, uri: &str) -> Self;
@@ -65,7 +71,9 @@ pub struct XmlDocumentTemplateBuilder<'d> {
 
 struct TemplateOptions {
     c14n: XmlSecCanonicalizationMethod,
+
     sig: XmlSecSignatureMethod,
+    refsig: XmlSecSignatureMethod,
 
     ns_prefix: Option<String>,
     uri: Option<String>,
@@ -79,7 +87,9 @@ impl Default for TemplateOptions {
     fn default() -> Self {
         Self {
             c14n: XmlSecCanonicalizationMethod::ExclusiveC14N,
+
             sig: XmlSecSignatureMethod::RsaSha1,
+            refsig: XmlSecSignatureMethod::Sha1,
 
             uri: None,
             ns_prefix: None,
@@ -110,6 +120,11 @@ impl<'d> TemplateBuilder for XmlDocumentTemplateBuilder<'d> {
 
     fn signature(mut self, sig: XmlSecSignatureMethod) -> Self {
         self.options.sig = sig;
+        self
+    }
+
+    fn reference_signature(mut self, sig: XmlSecSignatureMethod) -> Self {
+        self.options.refsig = sig;
         self
     }
 
@@ -180,7 +195,7 @@ impl<'d> TemplateBuilder for XmlDocumentTemplateBuilder<'d> {
         let reference = unsafe {
             bindings::xmlSecTmplSignatureAddReference(
                 signature,
-                XmlSecSignatureMethod::Sha1.to_method(),
+                self.options.refsig.to_method(),
                 null(),
                 curi,
                 null(),
@@ -238,7 +253,6 @@ impl<'d> TemplateBuilder for XmlDocumentTemplateBuilder<'d> {
                 signature as *mut libxml::bindings::_xmlNode,
             )
         };
-
         Ok(())
     }
 }

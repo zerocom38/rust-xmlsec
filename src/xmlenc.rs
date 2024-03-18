@@ -11,7 +11,6 @@ use crate::XmlSecResult;
 use crate::xmlkeysmngr::XmlSecKeysMngr;
 use crate::XmlNode;
 
-use std::pin::Pin;
 use std::ptr::null_mut;
 
 /// Signature signing/veryfying context
