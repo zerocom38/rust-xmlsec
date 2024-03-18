@@ -14,6 +14,7 @@ use crate::XmlNode;
 use crate::XmlSecSignatureMethod;
 
 use std::os::raw::c_uchar;
+use std::mem::forget;
 use std::ptr::null_mut;
 
 /// Signature signing/veryfying context
@@ -61,7 +62,7 @@ impl XmlSecSignatureContext {
         let mut old = None;
 
         unsafe {
-            if !(*self.ctx).signKey.is_null() {
+            if ! (*self.ctx).signKey.is_null() {
                 old = Some(XmlSecKey::from_ptr((*self.ctx).signKey));
             }
 
@@ -108,13 +109,15 @@ impl XmlSecSignatureContext {
         self.key_is_set()?;
 
         let root = find_root(doc)?;
-        let sig = find_signode(root)?;
+        let sig  = find_signode(root)?;
 
         self.sign_node_raw(sig)
     }
 
     /// UNTESTED
     pub fn verify_node(&self, node: &XmlNode) -> XmlSecResult<bool> {
+        self.key_is_set()?;
+
         let node = node.node_ptr() as bindings::xmlNodePtr;
 
         self.verify_node_raw(node)
@@ -134,7 +137,7 @@ impl XmlSecSignatureContext {
         self.key_is_set()?;
 
         let root = find_root(doc)?;
-        let sig = find_signode(root)?;
+        let sig  = find_signode(root)?;
 
         self.verify_node_raw(sig)
     }
@@ -145,6 +148,30 @@ impl XmlSecSignatureContext {
             (*self.ctx).keyInfoReadCtx.certsVerificationTime = time;
         }
     }
+
+    /// # Safety
+    ///
+    /// Returns a raw pointer to the underlying xmlsec signature context. Beware that it is still managed by this
+    /// wrapping object and will be deallocated once `self` gets dropped.
+    pub unsafe fn as_ptr(&self) -> *mut bindings::xmlSecDSigCtx
+    {
+        self.ctx
+    }
+
+    /// # Safety
+    ///
+    /// Returns a raw pointer to the underlying xmlsec signature context. Beware that it will be forgotten by this
+    /// wrapping object and *must* be deallocated manually by the callee.
+    pub unsafe fn into_ptr(self) -> *mut bindings::xmlSecDSigCtx
+    {
+        let ctx = self.ctx;  // keep a copy of the pointer
+
+        forget(self);  // release our copy of the pointer without deallocating it
+
+        ctx  // return the only remaining copy
+    }
+
+}
 
     /// Gets the signature method used in the context.
     pub fn signature_method(&self) -> Option<XmlSecSignatureMethod> {
@@ -209,9 +236,9 @@ impl XmlSecSignatureContext {
         }
 
         match unsafe { (*self.ctx).status } {
-            bindings::xmlSecDSigStatus_xmlSecDSigStatusUnknown => Ok(false),
+            bindings::xmlSecDSigStatus_xmlSecDSigStatusUnknown   => Ok(false),
             bindings::xmlSecDSigStatus_xmlSecDSigStatusSucceeded => Ok(true),
-            bindings::xmlSecDSigStatus_xmlSecDSigStatusInvalid => Ok(false),
+            bindings::xmlSecDSigStatus_xmlSecDSigStatusInvalid   => Ok(false),
 
             _ => panic!("Failed to interprete xmlSecDSigStatus code"),
         }
@@ -225,6 +252,8 @@ impl Drop for XmlSecSignatureContext {
         };
     }
 }
+
+
 
 fn find_root(doc: &XmlDocument) -> XmlSecResult<*mut bindings::xmlNode> {
     if let Some(root) = doc.get_root_element() {
@@ -240,9 +269,9 @@ fn find_root(doc: &XmlDocument) -> XmlSecResult<*mut bindings::xmlNode> {
 fn find_signode(tree: *mut bindings::xmlNode) -> XmlSecResult<*mut bindings::xmlNode> {
     let signode = unsafe {
         bindings::xmlSecFindNode(
-            tree,
-            &bindings::xmlSecNodeSignature as *const c_uchar,
-            &bindings::xmlSecDSigNs as *const c_uchar,
+        tree,
+        &bindings::xmlSecNodeSignature as *const c_uchar,
+        &bindings::xmlSecDSigNs        as *const c_uchar,
         )
     };
 

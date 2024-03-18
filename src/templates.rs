@@ -28,6 +28,11 @@ pub trait TemplateBuilder {
     /// [sig]: ./crypto/openssl/enum.XmlSecSignatureMethod.html
     fn signature(self, sig: XmlSecSignatureMethod) -> Self;
 
+    /// Sets cryptographic digest for `<dsig:Reference/>. See: [`XmlSecSignatureMethod`][sig].
+    ///
+    /// [sig]: ./crypto/openssl/enum.XmlSecSignatureMethod.html
+    fn reference_signature(self, sig: XmlSecSignatureMethod) -> Self;
+
     /// Sets signature subject node URI
     fn uri(self, uri: &str) -> Self;
 
@@ -59,18 +64,20 @@ pub trait XmlDocumentTemplating<'d> {
 ///
 /// [xmldoc]: http://kwarc.github.io/rust-libxml/libxml/tree/document/struct.Document.html
 pub struct XmlDocumentTemplateBuilder<'d> {
-    doc: &'d XmlDocument,
+    doc:     &'d XmlDocument,
     options: TemplateOptions,
 }
 
 struct TemplateOptions {
     c14n: XmlSecCanonicalizationMethod,
-    sig: XmlSecSignatureMethod,
+
+    sig:  XmlSecSignatureMethod,
+    refsig: XmlSecSignatureMethod,
 
     ns_prefix: Option<String>,
-    uri: Option<String>,
+    uri:       Option<String>,
 
-    keyname: bool,
+    keyname:  bool,
     keyvalue: bool,
     x509data: bool,
 }
@@ -79,12 +86,14 @@ impl Default for TemplateOptions {
     fn default() -> Self {
         Self {
             c14n: XmlSecCanonicalizationMethod::ExclusiveC14N,
-            sig: XmlSecSignatureMethod::RsaSha1,
 
-            uri: None,
+            sig:  XmlSecSignatureMethod::RsaSha1,
+            refsig: XmlSecSignatureMethod::Sha1,
+
+            uri:       None,
             ns_prefix: None,
 
-            keyname: false,
+            keyname:  false,
             keyvalue: false,
             x509data: false,
         }
@@ -112,6 +121,12 @@ impl<'d> TemplateBuilder for XmlDocumentTemplateBuilder<'d> {
         self.options.sig = sig;
         self
     }
+
+    fn reference_signature(mut self, sig: XmlSecSignatureMethod) -> Self {
+        self.options.refsig = sig;
+        self
+    }
+
 
     fn uri(mut self, uri: &str) -> Self {
         self.options.uri = Some(uri.to_owned());
@@ -165,11 +180,11 @@ impl<'d> TemplateBuilder for XmlDocumentTemplateBuilder<'d> {
 
         let signature = unsafe {
             bindings::xmlSecTmplSignatureCreateNsPref(
-                docptr,
-                self.options.c14n.to_method(),
-                self.options.sig.to_method(),
-                null(),
-                c_ns_prefix,
+            docptr,
+            self.options.c14n.to_method(),
+            self.options.sig.to_method(),
+            null(),
+            c_ns_prefix,
             )
         };
 
@@ -179,11 +194,11 @@ impl<'d> TemplateBuilder for XmlDocumentTemplateBuilder<'d> {
 
         let reference = unsafe {
             bindings::xmlSecTmplSignatureAddReference(
-                signature,
-                XmlSecSignatureMethod::Sha1.to_method(),
-                null(),
-                curi,
-                null(),
+            signature,
+            self.options.refsig.to_method(),
+            null(),
+            curi,
+            null(),
             )
         };
 
@@ -232,12 +247,7 @@ impl<'d> TemplateBuilder for XmlDocumentTemplateBuilder<'d> {
             }
         }
 
-        unsafe {
-            libxml::bindings::xmlAddChild(
-                rootptr as *mut libxml::bindings::_xmlNode,
-                signature as *mut libxml::bindings::_xmlNode,
-            )
-        };
+        unsafe { bindings::xmlAddChild(rootptr, signature) };
 
         Ok(())
     }
