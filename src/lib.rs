@@ -4,9 +4,8 @@
 //! Modules reflect the header names of the bound xmlsec1 library
 //!
 #![deny(missing_docs)]
-
 #![deny(clippy::all)]
-#![allow(clippy::new_without_default)]  // simply do not agree with this
+#![allow(clippy::new_without_default)] // simply do not agree with this
 
 // imports
 use lazy_static::lazy_static;
@@ -34,8 +33,6 @@ mod xmlkeysmngr;
 mod xmlsec;
 
 // exports
-pub mod bindings;  // for external extending of this wrapper
-
 pub use self::exts::XmlSecDocumentExt;
 
 pub use self::keys::XmlSecKey;
@@ -54,9 +51,9 @@ pub use self::xmlenc::XmlSecEncryptionContext;
 pub use self::xmlenc::XmlSecEncryptionContextMode;
 pub use self::xmlkeysmngr::XmlSecKeysMngr;
 
-pub use self::templates::TemplateBuilder            as XmlSecTemplateBuilder;
+pub use self::templates::TemplateBuilder as XmlSecTemplateBuilder;
 pub use self::templates::XmlDocumentTemplateBuilder as XmlSecDocumentTemplateBuilder;
-pub use self::templates::XmlDocumentTemplating      as XmlSecDocumentTemplating;
+pub use self::templates::XmlDocumentTemplating as XmlSecDocumentTemplating;
 
 pub use self::transforms::XmlSecCanonicalizationMethod;
 pub use self::transforms::XmlSecTransform;

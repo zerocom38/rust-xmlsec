@@ -1,7 +1,7 @@
 //!
 //! Wrapper for XmlSec Key and Certificate management Context
 //!
- 
+
 #![allow(missing_docs)]
 use crate::bindings;
 
