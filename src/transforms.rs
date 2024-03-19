@@ -91,7 +91,6 @@ impl XmlSecTransformCtx {
             };
             Ok(data)
         } else {
-            println!("Error: {}", res);
             Err(XmlSecError::TransformError)
         }
     }
@@ -153,13 +152,6 @@ impl XmlSecTransform {
             {
                 return false;
             }
-            println!(
-                "Transform info: {}, {} [{}, {}]",
-                id.klassSize,
-                id.objSize,
-                std::mem::size_of::<bindings::xmlSecTransformKlass>(),
-                std::mem::size_of::<bindings::xmlSecTransform>()
-            );
             return true;
         }
     }
