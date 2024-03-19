@@ -11,3 +11,4 @@ Cargo.lock
 
 # Editor and IDE environments
 .vscode/
+.idea/
