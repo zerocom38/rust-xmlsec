@@ -66,7 +66,12 @@ pub trait XmlDocumentTemplating<'d> {
 /// [xmldoc]: http://kwarc.github.io/rust-libxml/libxml/tree/document/struct.Document.html
 pub struct XmlDocumentTemplateBuilder<'d> {
     doc: &'d XmlDocument,
-    options: TemplateOptions,
+    c14n: XmlSecCanonicalizationMethod,
+
+    sig: XmlSecSignatureMethod,
+    refsig: XmlSecSignatureMethod,
+
+    ns_prefix: Option<String>,
 }
 
 struct TemplateOptions {
@@ -78,9 +83,16 @@ struct TemplateOptions {
     ns_prefix: Option<String>,
     uri: Option<String>,
 
+    envelope: bool,
+
     keyname: bool,
     keyvalue: bool,
     x509data: bool,
+}
+
+pub struct SignatureNode<'a> {
+    doc: &'a XmlDocument,
+    node: *mut bindings::xmlNode,
 }
 
 impl Default for TemplateOptions {
@@ -94,6 +106,8 @@ impl Default for TemplateOptions {
             uri: None,
             ns_prefix: None,
 
+            envelope: true,
+
             keyname: false,
             keyvalue: false,
             x509data: false,
@@ -105,72 +119,44 @@ impl<'d> XmlDocumentTemplating<'d> for XmlDocument {
     fn template(&'d self) -> XmlDocumentTemplateBuilder<'d> {
         crate::xmlsec::guarantee_xmlsec_init();
 
-        XmlDocumentTemplateBuilder {
-            doc: self,
-            options: TemplateOptions::default(),
-        }
+        XmlDocumentTemplateBuilder::new(&self)
     }
 }
 
-impl<'d> TemplateBuilder for XmlDocumentTemplateBuilder<'d> {
-    fn canonicalization(mut self, c14n: XmlSecCanonicalizationMethod) -> Self {
-        self.options.c14n = c14n;
-        self
+impl<'a> XmlDocumentTemplateBuilder<'a> {
+    /// Creates a new template builder over a given document
+    pub fn new(doc: &'a XmlDocument) -> Self {
+        Self {
+            doc,
+            c14n: XmlSecCanonicalizationMethod::ExclusiveC14N,
+
+            sig: XmlSecSignatureMethod::RsaSha1,
+            refsig: XmlSecSignatureMethod::Sha1,
+
+            ns_prefix: None,
+        }
     }
 
-    fn signature(mut self, sig: XmlSecSignatureMethod) -> Self {
-        self.options.sig = sig;
-        self
-    }
-
-    fn reference_signature(mut self, sig: XmlSecSignatureMethod) -> Self {
-        self.options.refsig = sig;
-        self
-    }
-
-    fn uri(mut self, uri: &str) -> Self {
-        self.options.uri = Some(uri.to_owned());
-        self
-    }
-
-    fn ns_prefix(mut self, ns_prefix: &str) -> Self {
-        self.options.ns_prefix = Some(ns_prefix.to_owned());
-        self
-    }
-
-    fn keyname(mut self, add: bool) -> Self {
-        self.options.keyname = add;
-        self
-    }
-
-    fn keyvalue(mut self, add: bool) -> Self {
-        self.options.keyvalue = add;
-        self
-    }
-
-    fn x509data(mut self, add: bool) -> Self {
-        self.options.x509data = add;
-        self
-    }
-
-    fn done(self) -> XmlSecResult<()> {
-        let curi = {
-            if let Some(uri) = self.options.uri {
-                CString::new(uri).unwrap().into_raw() as *const c_uchar
-            } else {
-                null()
-            }
-        };
-
+    /// Builds the actual template and returns
+    pub fn build(self) -> XmlSecResult<SignatureNode<'a>> {
+        let docptr = self.doc.doc_ptr() as *mut bindings::xmlDoc;
         let c_ns_prefix = {
-            if let Some(ns_prefix) = self.options.ns_prefix {
+            if let Some(ns_prefix) = self.ns_prefix {
                 CString::new(ns_prefix).unwrap().into_raw() as *const c_uchar
             } else {
                 null()
             }
         };
 
-        let docptr = self.doc.doc_ptr() as *mut bindings::xmlDoc;
+        let node = unsafe {
+            bindings::xmlSecTmplSignatureCreateNsPref(
+                docptr,
+                self.c14n.to_method(),
+                self.sig.to_method(),
+                null(),
+                c_ns_prefix,
+            )
+        };
 
         let rootptr = if let Some(root) = self.doc.get_root_element() {
             root.node_ptr() as *mut bindings::xmlNode
@@ -178,24 +164,63 @@ impl<'d> TemplateBuilder for XmlDocumentTemplateBuilder<'d> {
             return Err(XmlSecError::RootNotFound);
         };
 
-        let signature = unsafe {
-            bindings::xmlSecTmplSignatureCreateNsPref(
-                docptr,
-                self.options.c14n.to_method(),
-                self.options.sig.to_method(),
-                null(),
-                c_ns_prefix,
+        unsafe {
+            libxml::bindings::xmlAddChild(
+                rootptr as *mut libxml::bindings::_xmlNode,
+                node as *mut libxml::bindings::_xmlNode,
             )
         };
 
-        if signature.is_null() {
-            panic!("Failed to create signature template");
-        }
+        Ok(SignatureNode {
+            doc: self.doc,
+            node,
+        })
+    }
 
+    /// Sets canonicalization method. See: [`XmlSecCanonicalizationMethod`][c14n].
+    ///
+    /// [c14n]: ./transforms/enum.XmlSecCanonicalizationMethod.html
+    pub fn canonicalization(mut self, c14n: XmlSecCanonicalizationMethod) -> Self {
+        self.c14n = c14n;
+        self
+    }
+
+    /// Sets cryptographic signature method. See: [`XmlSecSignatureMethod`][sig].
+    ///
+    /// [sig]: ./crypto/openssl/enum.XmlSecSignatureMethod.html
+    pub fn signature(mut self, sig: XmlSecSignatureMethod) -> Self {
+        self.sig = sig;
+        self
+    }
+
+    /// the namespace prefix for the signature element (e.g. "dsig")
+    pub fn ns_prefix(mut self, ns_prefix: &str) -> Self {
+        self.ns_prefix = Some(ns_prefix.to_owned());
+        self
+    }
+}
+
+impl<'a> SignatureNode<'a> {
+    /// Sets cryptographic digest for `<dsig:Reference/>. See: [`XmlSecSignatureMethod`][sig].
+    ///
+    /// [sig]: ./crypto/openssl/enum.XmlSecSignatureMethod.html
+    pub fn reference_signature(
+        &self,
+        sig: XmlSecSignatureMethod,
+        uri: Option<&str>,
+        with_enveloped: bool,
+    ) {
+        let curi = {
+            if let Some(uri) = uri {
+                CString::new(uri).unwrap().into_raw() as *const c_uchar
+            } else {
+                null()
+            }
+        };
         let reference = unsafe {
             bindings::xmlSecTmplSignatureAddReference(
-                signature,
-                self.options.refsig.to_method(),
+                self.node,
+                sig.to_method(),
                 null(),
                 curi,
                 null(),
@@ -206,53 +231,49 @@ impl<'d> TemplateBuilder for XmlDocumentTemplateBuilder<'d> {
             panic!("Failed to add enveloped transform to reference");
         }
 
-        let envelope = unsafe {
-            bindings::xmlSecTmplReferenceAddTransform(
-                reference,
-                bindings::xmlSecTransformEnvelopedGetKlass(),
-            )
-        };
+        if with_enveloped {
+            let envelope = unsafe {
+                bindings::xmlSecTmplReferenceAddTransform(
+                    reference,
+                    bindings::xmlSecTransformEnvelopedGetKlass(),
+                )
+            };
 
-        if envelope.is_null() {
-            panic!("Failed to add enveloped transform")
-        }
-
-        let keyinfo = unsafe { bindings::xmlSecTmplSignatureEnsureKeyInfo(signature, null()) };
-
-        if keyinfo.is_null() {
-            panic!("Failed to ensure key info");
-        }
-
-        if self.options.keyname {
-            let keyname = unsafe { bindings::xmlSecTmplKeyInfoAddKeyName(keyinfo, null()) };
-
-            if keyname.is_null() {
-                panic!("Failed to add key name");
+            if envelope.is_null() {
+                panic!("Failed to add enveloped transform")
             }
         }
+    }
 
-        if self.options.keyvalue {
-            let keyvalue = unsafe { bindings::xmlSecTmplKeyInfoAddKeyValue(keyinfo) };
+    fn keyname(&self, add: bool) {
+        // let keyinfo = unsafe { bindings::xmlSecTmplSignatureEnsureKeyInfo(signature, null()) };
 
-            if keyvalue.is_null() {
-                panic!("Failed to add key value");
-            }
-        }
+        // if keyinfo.is_null() {
+        //     panic!("Failed to ensure key info");
+        // }
 
-        if self.options.x509data {
-            let x509data = unsafe { bindings::xmlSecTmplKeyInfoAddX509Data(keyinfo) };
+        // if self.options.keyname {
+        //     let keyname = unsafe { bindings::xmlSecTmplKeyInfoAddKeyName(keyinfo, null()) };
 
-            if x509data.is_null() {
-                panic!("Failed to add key value");
-            }
-        }
+        //     if keyname.is_null() {
+        //         panic!("Failed to add key name");
+        //     }
+        // }
 
-        unsafe {
-            libxml::bindings::xmlAddChild(
-                rootptr as *mut libxml::bindings::_xmlNode,
-                signature as *mut libxml::bindings::_xmlNode,
-            )
-        };
-        Ok(())
+        // if self.options.keyvalue {
+        //     let keyvalue = unsafe { bindings::xmlSecTmplKeyInfoAddKeyValue(keyinfo) };
+
+        //     if keyvalue.is_null() {
+        //         panic!("Failed to add key value");
+        //     }
+        // }
+
+        // if self.options.x509data {
+        //     let x509data = unsafe { bindings::xmlSecTmplKeyInfoAddX509Data(keyinfo) };
+
+        //     if x509data.is_null() {
+        //         panic!("Failed to add key value");
+        //     }
+        // }
     }
 }
