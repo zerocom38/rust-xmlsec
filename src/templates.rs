@@ -2,6 +2,8 @@
 //! Wrapper for DSIG Nodes Templating
 //!
 
+use openssl::x509::X509;
+
 use crate::bindings;
 
 use crate::XmlDocument;
@@ -74,43 +76,235 @@ pub struct XmlDocumentTemplateBuilder<'d> {
     ns_prefix: Option<String>,
 }
 
-struct TemplateOptions {
-    c14n: XmlSecCanonicalizationMethod,
-
-    sig: XmlSecSignatureMethod,
-    refsig: XmlSecSignatureMethod,
-
-    ns_prefix: Option<String>,
-    uri: Option<String>,
-
-    envelope: bool,
-
-    keyname: bool,
-    keyvalue: bool,
-    x509data: bool,
-}
-
 pub struct SignatureNode<'a> {
     doc: &'a XmlDocument,
     node: *mut bindings::xmlNode,
 }
 
-impl Default for TemplateOptions {
-    fn default() -> Self {
+/// Build a reference signature node
+pub struct ReferenceSignatureBuilder<'a> {
+    signature_node: &'a SignatureNode<'a>,
+    sig: XmlSecSignatureMethod,
+    uri: Option<CString>,
+    with_enveloped: bool,
+}
+
+/// Build a key information node
+pub struct KeyInfoBuilder<'a> {
+    signature_node: &'a SignatureNode<'a>,
+    keyname: bool,
+    keyvalue: bool,
+    x509data: bool,
+}
+
+/// Build a KeyInfi/X509 data node
+pub struct X509Builder<'a> {
+    signature_node: &'a SignatureNode<'a>,
+}
+
+impl<'a> X509Builder<'a> {
+    /// Creates a new X509 data builder over a given signature node
+    pub fn new(signature_node: &'a SignatureNode<'a>) -> Self {
+        Self { signature_node }
+    }
+
+    /// Adds a new X509 data node to the signature node
+    pub fn add_node(self, cert: X509) {
+        let keyinfo =
+            unsafe { bindings::xmlSecTmplSignatureEnsureKeyInfo(self.signature_node.node, null()) };
+
+        if keyinfo.is_null() {
+            panic!("Failed to ensure key info");
+        }
+
+        let x509data = unsafe { bindings::xmlSecTmplKeyInfoAddX509Data(keyinfo) };
+
+        if x509data.is_null() {
+            panic!("Failed to add X509 data node");
+        }
+
+        let x509ser = unsafe { bindings::xmlSecTmplX509DataAddIssuerSerial(x509data) };
+
+        if x509ser.is_null() {
+            panic!("Failed to add X509 issuer serial nodel");
+        }
+
+        let issuer_string = cert
+            .issuer_name()
+            .entries()
+            .map(|entry| {
+                format!(
+                    "/{}={}",
+                    entry.object().nid().short_name().unwrap(),
+                    entry.data().as_utf8().unwrap()
+                )
+            })
+            .collect::<Vec<_>>()
+            .join("");
+        unsafe {
+            bindings::xmlSecTmplX509IssuerSerialAddIssuerName(
+                x509ser,
+                CString::new(issuer_string).unwrap().into_raw() as *const c_uchar,
+            );
+        }
+
+        let serial_number = cert
+            .serial_number()
+            .to_bn()
+            .unwrap()
+            .to_dec_str()
+            .unwrap()
+            .to_string();
+        unsafe {
+            bindings::xmlSecTmplX509IssuerSerialAddSerialNumber(
+                x509ser,
+                CString::new(serial_number).unwrap().into_raw() as *const c_uchar,
+            );
+        }
+
+        let x509cert = unsafe { bindings::xmlSecTmplX509DataAddCertificate(x509data) };
+
+        if x509cert.is_null() {
+            panic!("Failed to add X509 certificate node");
+        }
+
+        let cert_string = cert.to_der().unwrap();
+
+        unsafe {
+            let buf = bindings::xmlSecBufferCreate(cert_string.len());
+            bindings::xmlSecBufferSetData(
+                buf,
+                cert_string.as_ptr() as *const c_uchar,
+                cert_string.len(),
+            );
+            bindings::xmlSecBufferBase64NodeContentWrite(buf, x509cert, 76);
+            bindings::xmlSecBufferDestroy(buf)
+        }
+    }
+}
+
+impl<'a> KeyInfoBuilder<'a> {
+    fn new(signature_node: &'a SignatureNode<'a>) -> Self {
         Self {
-            c14n: XmlSecCanonicalizationMethod::ExclusiveC14N,
-
-            sig: XmlSecSignatureMethod::RsaSha1,
-            refsig: XmlSecSignatureMethod::Sha1,
-
-            uri: None,
-            ns_prefix: None,
-
-            envelope: true,
-
+            signature_node,
             keyname: false,
             keyvalue: false,
             x509data: false,
+        }
+    }
+
+    pub fn keyname(mut self, keyname: bool) -> Self {
+        self.keyname = keyname;
+        self
+    }
+
+    pub fn keyvalue(mut self, keyvalue: bool) -> Self {
+        self.keyvalue = keyvalue;
+        self
+    }
+
+    pub fn x509data(mut self, x509data: bool) -> Self {
+        self.x509data = x509data;
+        self
+    }
+
+    pub fn add_node(self) {
+        let keyinfo =
+            unsafe { bindings::xmlSecTmplSignatureEnsureKeyInfo(self.signature_node.node, null()) };
+
+        if keyinfo.is_null() {
+            panic!("Failed to ensure key info");
+        }
+
+        if self.keyname {
+            let keyname = unsafe { bindings::xmlSecTmplKeyInfoAddKeyName(keyinfo, null()) };
+
+            if keyname.is_null() {
+                panic!("Failed to add key name");
+            }
+        }
+
+        if self.keyvalue {
+            let keyvalue = unsafe { bindings::xmlSecTmplKeyInfoAddKeyValue(keyinfo) };
+
+            if keyvalue.is_null() {
+                panic!("Failed to add key value");
+            }
+        }
+
+        if self.x509data {
+            let x509data = unsafe { bindings::xmlSecTmplKeyInfoAddX509Data(keyinfo) };
+
+            if x509data.is_null() {
+                panic!("Failed to add key value");
+            }
+        }
+    }
+}
+
+impl<'a> ReferenceSignatureBuilder<'a> {
+    /// Creates a new reference signature builder over a given signature node
+    pub fn new(signature_node: &'a SignatureNode<'a>) -> Self {
+        Self {
+            signature_node,
+            sig: XmlSecSignatureMethod::Sha1,
+            uri: None,
+            with_enveloped: true,
+        }
+    }
+
+    /// Sets cryptographic digest for `<dsig:Reference/>`. See: [`XmlSecSignatureMethod`][sig].
+    pub fn signature(mut self, sig: XmlSecSignatureMethod) -> Self {
+        self.sig = sig;
+        self
+    }
+
+    /// Sets signature subject node URI
+    pub fn uri(mut self, uri: &str) -> Self {
+        self.uri = Some(CString::new(uri).unwrap());
+        self
+    }
+
+    /// Adds a reference signature node to the signature node
+    pub fn with_enveloped(mut self, with_enveloped: bool) -> Self {
+        self.with_enveloped = with_enveloped;
+        self
+    }
+
+    /// Adds a new reference signature node to the signature node
+    pub fn add_node(self) {
+        let curi = {
+            if let Some(uri) = self.uri {
+                uri.into_raw() as *const c_uchar
+            } else {
+                null()
+            }
+        };
+        let reference = unsafe {
+            bindings::xmlSecTmplSignatureAddReference(
+                self.signature_node.node,
+                self.sig.to_method(),
+                null(),
+                curi,
+                null(),
+            )
+        };
+
+        if reference.is_null() {
+            panic!("Failed to add enveloped transform to reference");
+        }
+
+        if self.with_enveloped {
+            let envelope = unsafe {
+                bindings::xmlSecTmplReferenceAddTransform(
+                    reference,
+                    bindings::xmlSecTransformEnvelopedGetKlass(),
+                )
+            };
+
+            if envelope.is_null() {
+                panic!("Failed to add enveloped transform")
+            }
         }
     }
 }
@@ -201,50 +395,6 @@ impl<'a> XmlDocumentTemplateBuilder<'a> {
 }
 
 impl<'a> SignatureNode<'a> {
-    /// Sets cryptographic digest for `<dsig:Reference/>. See: [`XmlSecSignatureMethod`][sig].
-    ///
-    /// [sig]: ./crypto/openssl/enum.XmlSecSignatureMethod.html
-    pub fn reference_signature(
-        &self,
-        sig: XmlSecSignatureMethod,
-        uri: Option<&str>,
-        with_enveloped: bool,
-    ) {
-        let curi = {
-            if let Some(uri) = uri {
-                CString::new(uri).unwrap().into_raw() as *const c_uchar
-            } else {
-                null()
-            }
-        };
-        let reference = unsafe {
-            bindings::xmlSecTmplSignatureAddReference(
-                self.node,
-                sig.to_method(),
-                null(),
-                curi,
-                null(),
-            )
-        };
-
-        if reference.is_null() {
-            panic!("Failed to add enveloped transform to reference");
-        }
-
-        if with_enveloped {
-            let envelope = unsafe {
-                bindings::xmlSecTmplReferenceAddTransform(
-                    reference,
-                    bindings::xmlSecTransformEnvelopedGetKlass(),
-                )
-            };
-
-            if envelope.is_null() {
-                panic!("Failed to add enveloped transform")
-            }
-        }
-    }
-
     fn keyname(&self, add: bool) {
         // let keyinfo = unsafe { bindings::xmlSecTmplSignatureEnsureKeyInfo(signature, null()) };
 

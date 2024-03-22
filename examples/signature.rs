@@ -33,7 +33,7 @@ fn create_template(doc: &XmlDocument) {
     doc.template()
         .canonicalization(XmlSecCanonicalizationMethod::ExclusiveC14N)
         .signature(XmlSecSignatureMethod::RsaSha1)
-        .done()
+        .build()
         .expect("Failed to create/attach signature template");
 }
 

@@ -19,9 +19,4 @@ XML Security Library example: Original XML doc file for sign2 example.
 </Reference>
 </SignedInfo>
 <SignatureValue/>
-<KeyInfo>
-<KeyName/>
-<KeyValue/>
-<X509Data/>
-</KeyInfo>
 </Signature></Envelope>

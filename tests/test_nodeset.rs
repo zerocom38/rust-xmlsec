@@ -1,20 +1,5 @@
-use base64::prelude::*;
 use libxml::tree::{Document, Namespace, Node};
 use xmlsec::{XmlSecNodeSet, XmlSecTransform, XmlSecTransformCtx};
-
-#[test]
-fn test_node_set() {
-    let doc = Document::new().unwrap();
-    let mut node = Node::new("test", None, &doc).unwrap();
-    let node_set = XmlSecNodeSet::new(&doc);
-
-    // let trans_ctx = XmlSecTransformCtx::new();
-    // let trans = XmlSecTransform::with_operation(
-    //     xmlsec::XmlSecCanonicalizationMethod::InclusiveC14N,
-    //     xmlsec::XmlSecTransformOperation::Sign,
-    // );
-    // trans_ctx.append(trans);
-}
 
 #[test]
 fn test_node_set_with_children() {
@@ -80,17 +65,5 @@ fn test_node_set_with_children() {
     let data = trans_ctx.xml_execute(&node_set).unwrap();
     let base64_data = std::str::from_utf8(&data).unwrap();
 
-    println!("{:?}", data);
-    println!("{}", base64_data);
     assert_eq!(base64_data, "0HwjYW3B/l79oq2NHVctyN7qMhE=");
 }
-
-/*
-       <lr:LogRecordBody>
-           <lr:EventID xmlns:lr="http://www.smpte-ra.org/schemas/430-4/2008/LogRecord/">urn:uuid:1f9d3a08-edd6-4402-99c0-b80d9c7614fc</lr:EventID>
-           <lr:EventSubType scope="http://www.smpte-ra.org/430-5/2008/SecurityLog/#EventSubTypes-operations">SPBStartup</lr:EventSubType>
-       </lr:LogRecordBody>
-
-                   <lr:recordBodyHash>0HwjYW3B/l79oq2NHVctyN7qMhE=</lr:recordBodyHash>
-
-*/

@@ -1,6 +1,7 @@
 //!
 //! Testing of Template Creation
 //!
+use xmlsec::ReferenceSignatureBuilder;
 use xmlsec::XmlSecCanonicalizationMethod;
 use xmlsec::XmlSecDocumentTemplateBuilder;
 use xmlsec::XmlSecDocumentTemplating;
@@ -19,15 +20,21 @@ fn test_template_creation() {
         .expect("Could not load template document");
 
     // add signature node structure
-    doc.template()
+    let signature_node = doc
+        .template()
         .canonicalization(XmlSecCanonicalizationMethod::ExclusiveC14N)
         .signature(XmlSecSignatureMethod::RsaSha1)
-        .keyname(true)
-        .keyvalue(true)
-        .x509data(true)
-        .uri("ReferencedID")
-        .done()
+        // .keyname(true)
+        // .keyvalue(true)
+        // .x509data(true)
+        // .uri("ReferencedID")
+        // .done()
+        .build()
         .expect("Failed to build and attach signature");
+
+    ReferenceSignatureBuilder::new(&signature_node)
+        .uri("ReferencedID")
+        .add_node();
 
     // compare template results
     let reference =
@@ -53,18 +60,9 @@ fn test_template_creation_with_ns_prefix() {
         .build()
         .expect("Failed to build and attach signature");
 
-    sign_node.reference_signature(XmlSecSignatureMethod::Sha1, Some("ReferencedID"), true);
-
-    // doc.template()
-    //     .canonicalization(XmlSecCanonicalizationMethod::ExclusiveC14N)
-    //     .signature(XmlSecSignatureMethod::RsaSha1)
-    //     .ns_prefix("dsig")
-    //     .keyname(true)
-    //     .keyvalue(true)
-    //     .x509data(true)
-    //     .uri("ReferencedID")
-    //     .done()
-    //     .expect("Failed to build and attach signature");
+    ReferenceSignatureBuilder::new(&sign_node)
+        .uri("ReferencedID")
+        .add_node();
 
     // compare template results
     let reference =

@@ -55,8 +55,8 @@ fn test_key_name_handing() {
 #[test]
 fn test_keys_mngr_load() {
     let keys_mngr = XmlSecKeysMngr::new();
-    let cert_vec = std::fs::read("tests/resources/test.der").unwrap();
+    let cert_vec = std::fs::read("tests/resources/key.crt").unwrap();
     keys_mngr
-        .cert_load_from_memory(cert_vec.as_slice(), xmlsec::XmlSecKeyFormat::Der)
-        .expect("Failed to load certificate");
+        .cert_load_from_memory(cert_vec.as_slice(), xmlsec::XmlSecKeyFormat::Pem)
+        .expect("Failed to load key");
 }

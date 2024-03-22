@@ -19,9 +19,4 @@ XML Security Library example: Original XML doc file for sign2 example.
 </dsig:Reference>
 </dsig:SignedInfo>
 <dsig:SignatureValue/>
-<dsig:KeyInfo>
-<dsig:KeyName/>
-<dsig:KeyValue/>
-<dsig:X509Data/>
-</dsig:KeyInfo>
 </dsig:Signature></Envelope>

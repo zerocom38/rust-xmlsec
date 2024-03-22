@@ -51,7 +51,9 @@ pub use self::xmlenc::XmlSecEncryptionContext;
 pub use self::xmlenc::XmlSecEncryptionContextMode;
 pub use self::xmlkeysmngr::XmlSecKeysMngr;
 
+pub use self::templates::ReferenceSignatureBuilder;
 pub use self::templates::TemplateBuilder as XmlSecTemplateBuilder;
+pub use self::templates::X509Builder;
 pub use self::templates::XmlDocumentTemplateBuilder as XmlSecDocumentTemplateBuilder;
 pub use self::templates::XmlDocumentTemplating as XmlSecDocumentTemplating;
 

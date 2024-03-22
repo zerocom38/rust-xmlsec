@@ -1,9 +1,15 @@
 //!
 //! Unit Tests for DSig Context
 //!
+use std::fs::File;
+use std::io::Read;
+
+use openssl::x509::X509;
+use xmlsec::ReferenceSignatureBuilder;
+use xmlsec::X509Builder;
 use xmlsec::XmlSecCanonicalizationMethod;
 use xmlsec::XmlSecDocumentExt;
-use xmlsec::XmlSecDocumentTemplating;
+use xmlsec::XmlSecDocumentTemplateBuilder;
 use xmlsec::XmlSecKey;
 use xmlsec::XmlSecKeyDataType;
 use xmlsec::XmlSecKeyFormat;
@@ -130,7 +136,6 @@ fn common_setup_context_and_key() -> XmlSecSignatureContext {
 }
 use libxml::tree::{Document, Namespace, Node};
 use xmlsec::XmlSecSignatureMethod;
-use xmlsec::XmlSecTemplateBuilder;
 
 #[test]
 fn test_create_signature() {
@@ -165,16 +170,16 @@ fn test_create_signature() {
     root.add_child(&mut node).unwrap();
     let mut header_hash = Node::new("RecordHeaderHash", Some(ns.clone()), &doc).unwrap();
     header_hash
-        .set_content("gB4+3kwOkyyxqN18Zv+15rfcqRM=")
+        .set_content("alvhEhQmExrMBplDaEnkHzOHpIk=")
         .unwrap();
     node.add_child(&mut header_hash).unwrap();
-    let mut signer_cert_info = Node::new("SignerCertInfo", Some(ds.clone()), &doc).unwrap();
+    let mut signer_cert_info = Node::new("SignerCertInfo", Some(ns.clone()), &doc).unwrap();
     node.add_child(&mut signer_cert_info).unwrap();
     let mut x509_issuer_name = Node::new("X509IssuerName", Some(ds.clone()), &doc).unwrap();
-    x509_issuer_name.set_content("issuer_name_content").unwrap();
+    x509_issuer_name.set_content("/O=.ca.cinecert.com/OU=.cc-ra-1a.s430-2.ca.cinecert.com/CN=.dci-admin-x/dnQualifier=GjIDoDncuQNPTn109vq3vsWkkCA=").unwrap();
     signer_cert_info.add_child(&mut x509_issuer_name).unwrap();
     let mut x509_serial_number = Node::new("X509SerialNumber", Some(ds.clone()), &doc).unwrap();
-    x509_serial_number.set_content("47").unwrap();
+    x509_serial_number.set_content("32047").unwrap();
     signer_cert_info.add_child(&mut x509_serial_number).unwrap();
 
     doc.specify_idattr(
@@ -187,39 +192,32 @@ fn test_create_signature() {
     )
     .unwrap();
 
-    doc.template()
+    let sign_node = XmlSecDocumentTemplateBuilder::new(&doc)
         .canonicalization(XmlSecCanonicalizationMethod::InclusiveC14N)
         .signature(XmlSecSignatureMethod::RsaSha256)
         .ns_prefix("ds")
-        .reference_signature(XmlSecSignatureMethod::Sha1)
-        .uri("#ID_RecordAuthData")
-        .done()
+        .build()
         .unwrap();
 
-    let mut sign_ctx = XmlSecSignatureContext::new();
-    sign_ctx.insert_key(
-        XmlSecKey::from_file(
-            "tests/resources/key.pem",
-            XmlSecKeyDataType::Unknown,
-            XmlSecKeyFormat::Pem,
-            None,
-        )
-        .unwrap(),
-    );
+    ReferenceSignatureBuilder::new(&sign_node)
+        .signature(XmlSecSignatureMethod::Sha1)
+        .uri("#ID_RecordAuthData")
+        .with_enveloped(false)
+        .add_node();
+
+    let mut buf = Vec::new();
+    File::open("tests/resources/key.crt")
+        .unwrap()
+        .read_to_end(&mut buf)
+        .unwrap();
+    let cert = X509::from_pem(&buf).unwrap();
+    X509Builder::new(&sign_node).add_node(cert);
+
+    let sign_ctx = common_setup_context_and_key();
     sign_ctx.sign_document(&doc).unwrap();
 
-    println!("{}", doc.to_string());
+    let reference =
+        String::from_utf8(include_bytes!("./resources/sign4-signed.xml").to_vec()).unwrap();
 
-    assert!(false);
-
-    /*
-               <lr:RecordAuthData Id="ID_RecordAuthData">
-           <lr:RecordHeaderHash>gB4+3kwOkyyxqN18Zv+15rfcqRM=</lr:RecordHeaderHash>
-           <lr:SignerCertInfo>
-               <ds:X509IssuerName>/O=mikrom.com/OU=test-int-inter.mikrom.com/CN=.MikroM.TEST-INT-INTER.V1.000001/dnQualifier=e6fwMBm9jiAMiCx79aK3eN2Byr4=</ds:X509IssuerName>
-               <ds:X509SerialNumber>47</ds:X509SerialNumber>
-           </lr:SignerCertInfo>
-       </lr:RecordAuthData>
-
-    */
+    assert_eq!(doc.to_string(), reference);
 }

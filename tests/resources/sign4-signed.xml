@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<lr:LogReport xmlns:lr="http://www.smpte-ra.org/schemas/430-4/2008/LogRecord/" xmlns:dcml="http://www.smpte-ra.org/schemas/433/2008/dcmlTypes/" xmlns:ds="http://www.w3.org/2000/09/xmldsig#" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"><lr:RecordAuthData Id="ID_RecordAuthData"><lr:RecordHeaderHash>alvhEhQmExrMBplDaEnkHzOHpIk=</lr:RecordHeaderHash><lr:SignerCertInfo><ds:X509IssuerName>/O=.ca.cinecert.com/OU=.cc-ra-1a.s430-2.ca.cinecert.com/CN=.dci-admin-x/dnQualifier=GjIDoDncuQNPTn109vq3vsWkkCA=</ds:X509IssuerName><ds:X509SerialNumber>32047</ds:X509SerialNumber></lr:SignerCertInfo></lr:RecordAuthData><ds:Signature xmlns:ds="http://www.w3.org/2000/09/xmldsig#">
+<ds:SignedInfo>
+<ds:CanonicalizationMethod Algorithm="http://www.w3.org/TR/2001/REC-xml-c14n-20010315"/>
+<ds:SignatureMethod Algorithm="http://www.w3.org/2001/04/xmldsig-more#rsa-sha256"/>
+<ds:Reference URI="#ID_RecordAuthData">
+<ds:DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha1"/>
+<ds:DigestValue>a5MxHwgvd9i2lQp9xfEnEhf1HM8=</ds:DigestValue>
+</ds:Reference>
+</ds:SignedInfo>
+<ds:SignatureValue>l1+Xgh4QYe3xLloJf9fYxy6AYPBeWECALQvSI876TDxnk0RitQjIaoz/2isTAOJ0
+jlBE+cdsP9gGemCxytPplRcsA/O8OIW3kTTKuCXJ1Aop1HH4ifWeQ9h/YiChOoOF
+1rWLRNTfmKQood4PmKwe/PI+JAA3vwzPcJHExDqsKx8=</ds:SignatureValue>
+<ds:KeyInfo>
+<ds:X509Data>
+<ds:X509IssuerSerial>
+<ds:X509IssuerName>/C=NA/ST=NA/L=NA/O=NA/OU=NA/CN=NA/emailAddress=NA</ds:X509IssuerName>
+<ds:X509SerialNumber>516130161460874479919946613667599198815642934853</ds:X509SerialNumber>
+</ds:X509IssuerSerial>
+<ds:X509Certificate>MIICnjCCAgegAwIBAgIUWmgTrrcztHIgo1DC3l8CfKznXkUwDQYJKoZIhvcNAQELBQAwYTELMAkG
+A1UEBhMCTkExCzAJBgNVBAgMAk5BMQswCQYDVQQHDAJOQTELMAkGA1UECgwCTkExCzAJBgNVBAsM
+Ak5BMQswCQYDVQQDDAJOQTERMA8GCSqGSIb3DQEJARYCTkEwHhcNMTkxMjE0MTM0NDE4WhcNMjAw
+MTEzMTM0NDE4WjBhMQswCQYDVQQGEwJOQTELMAkGA1UECAwCTkExCzAJBgNVBAcMAk5BMQswCQYD
+VQQKDAJOQTELMAkGA1UECwwCTkExCzAJBgNVBAMMAk5BMREwDwYJKoZIhvcNAQkBFgJOQTCBnzAN
+BgkqhkiG9w0BAQEFAAOBjQAwgYkCgYEAvVpQwrmdS+bwBp/RZvTTmbSblL2M0Ucss4zWU3Wbe2cw
+3m+o7mT4tu9zQ7pnDRwvwIWEMfQZZMfuKeM1RR3XCcA+KBM0/YqGHBh8qHVvHjDt1bkvl0UWGdq3
+++WyMzyVnYF09hFb9DH5RtP+FskABIAz28wt9gDPmzE7nIWJGeMCAwEAAaNTMFEwHQYDVR0OBBYE
+FHhlEI2TgCeyvWMTnyynjAYq0zg7MB8GA1UdIwQYMBaAFHhlEI2TgCeyvWMTnyynjAYq0zg7MA8G
+A1UdEwEB/wQFMAMBAf8wDQYJKoZIhvcNAQELBQADgYEAp+cPh0pk1kMpLT1SRzeIt4vK72tOobH/
+q8YK9xwya4pnkzgDkqZo9QZx0Yzi4d5ynYxGA4fucZkq/p0zx+QTh0z80z/ZwWPz1twaKtZ+6brd
+8girIRwM3xMG811kGBREA00Ss4qnM+d9YOUVxKJuty7ECGIFPPzGkZvcKv9gzEA=</ds:X509Certificate>
+</ds:X509Data>
+</ds:KeyInfo>
+</ds:Signature></lr:LogReport>
