@@ -204,7 +204,7 @@ fn test_create_signature() {
         .read_to_end(&mut buf)
         .unwrap();
     let cert = X509::from_pem(&buf).unwrap();
-    X509Builder::new(&sign_node).add_node(cert);
+    X509Builder::new(&sign_node).add_node(&cert);
 
     let sign_ctx = common_setup_context_and_key();
     sign_ctx.sign_document(&doc).unwrap();

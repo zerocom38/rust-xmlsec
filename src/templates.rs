@@ -109,7 +109,7 @@ impl<'a> X509Builder<'a> {
     }
 
     /// Adds a new X509 data node to the signature node
-    pub fn add_node(self, cert: X509) {
+    pub fn add_node(self, cert: &X509) {
         let keyinfo =
             unsafe { bindings::xmlSecTmplSignatureEnsureKeyInfo(self.signature_node.node, null()) };
 
