@@ -6,7 +6,8 @@ use crate::XmlSecResult;
 use crate::XmlDocument;
 use crate::XmlXPathContext;
 
-use libxml::bindings; // FIXME requires common bindings generation over libxml2
+use libxml::bindings;
+use libxml::tree::Node; // FIXME requires common bindings generation over libxml2
 
 use std::ffi::CString;
 use std::os::raw::c_uchar;
@@ -21,6 +22,9 @@ pub trait XmlSecDocumentExt {
         idattr_name: &str,
         namespaces: Option<&[(&str, &str)]>,
     ) -> XmlSecResult<()>;
+
+    /// Adds an ID attribute to a node
+    fn add_id(&self, node: &Node, idattr_name: &str) -> XmlSecResult<()>;
 }
 
 impl XmlSecDocumentExt for XmlDocument {
@@ -61,24 +65,31 @@ impl XmlSecDocumentExt for XmlDocument {
         }
 
         for node in &subjnodes {
-            if let Some(attrnode) = node.get_property_node(idattr_name) {
-                let docptr = self.doc_ptr();
-                let attrptr = attrnode.node_ptr() as *mut bindings::_xmlAttr;
-
-                let id = attrnode.get_content();
-                let cid = CString::new(id.clone()).unwrap();
-                let cidptr = cid.as_ptr() as *mut c_uchar;
-
-                let existing = unsafe { bindings::xmlGetID(docptr, cidptr) };
-
-                if existing.is_null() {
-                    unsafe { bindings::xmlAddID(null_mut(), docptr, cidptr, attrptr) };
-                } else if existing != attrptr {
-                    return Err(format!("Error: duplicate ID attribute: {}", id).into());
-                }
-            }
+            self.add_id(node, idattr_name)?;
         }
 
         Ok(())
+    }
+
+    fn add_id(&self, node: &Node, idattr_name: &str) -> XmlSecResult<()> {
+        if let Some(attrnode) = node.get_property_node(idattr_name) {
+            let docptr = self.doc_ptr();
+            let attrptr = attrnode.node_ptr() as *mut bindings::_xmlAttr;
+
+            let id = attrnode.get_content();
+            let cid = CString::new(id.clone()).unwrap();
+            let cidptr = cid.as_ptr() as *mut c_uchar;
+
+            let existing = unsafe { bindings::xmlGetID(docptr, cidptr) };
+
+            if existing.is_null() {
+                unsafe { bindings::xmlAddID(null_mut(), docptr, cidptr, attrptr) };
+            } else if existing != attrptr {
+                return Err(format!("Error: duplicate ID attribute: {}", id).into());
+            }
+            Ok(())
+        } else {
+            Err(format!("Error: ID attribute not found").into())
+        }
     }
 }

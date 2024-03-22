@@ -4,6 +4,7 @@
 use std::fs::File;
 use std::io::Read;
 
+use libxml::bindings;
 use openssl::x509::X509;
 use xmlsec::ReferenceSignatureBuilder;
 use xmlsec::X509Builder;
@@ -182,15 +183,7 @@ fn test_create_signature() {
     x509_serial_number.set_content("32047").unwrap();
     signer_cert_info.add_child(&mut x509_serial_number).unwrap();
 
-    doc.specify_idattr(
-        "/lr:LogReport/lr:RecordAuthData",
-        "Id",
-        Some(&[(
-            "lr",
-            "http://www.smpte-ra.org/schemas/430-4/2008/LogRecord/",
-        )]),
-    )
-    .unwrap();
+    doc.add_id(&node, "Id").unwrap();
 
     let sign_node = XmlSecDocumentTemplateBuilder::new(&doc)
         .canonicalization(XmlSecCanonicalizationMethod::InclusiveC14N)
