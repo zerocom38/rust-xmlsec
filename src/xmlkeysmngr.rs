@@ -38,11 +38,7 @@ impl XmlSecKeysMngr {
     }
 
     /// Load certificate from memory and store it in keys manager
-    pub fn cert_load_from_memory(
-        self: &Self,
-        data: &[u8],
-        format: XmlSecKeyFormat,
-    ) -> XmlSecResult<()> {
+    pub fn cert_load_from_memory(&self, data: &[u8], format: XmlSecKeyFormat) -> XmlSecResult<()> {
         let data_size = data.len();
         match unsafe {
             bindings::xmlSecOpenSSLAppKeysMngrCertLoadMemory(

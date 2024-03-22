@@ -63,7 +63,7 @@ fn test_node_set_with_children() {
     );
     trans_ctx.append(trans);
     let data = trans_ctx.xml_execute(&node_set).unwrap();
-    let base64_data = std::str::from_utf8(&data).unwrap();
+    let base64_data = std::str::from_utf8(data).unwrap();
 
     assert_eq!(base64_data, "0HwjYW3B/l79oq2NHVctyN7qMhE=");
 }

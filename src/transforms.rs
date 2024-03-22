@@ -152,7 +152,7 @@ impl XmlSecTransform {
             {
                 return false;
             }
-            return true;
+            true
         }
     }
 }

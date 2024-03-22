@@ -313,7 +313,7 @@ impl<'d> XmlDocumentTemplating<'d> for XmlDocument {
     fn template(&'d self) -> XmlDocumentTemplateBuilder<'d> {
         crate::xmlsec::guarantee_xmlsec_init();
 
-        XmlDocumentTemplateBuilder::new(&self)
+        XmlDocumentTemplateBuilder::new(self)
     }
 }
 
@@ -395,7 +395,7 @@ impl<'a> XmlDocumentTemplateBuilder<'a> {
 }
 
 impl<'a> SignatureNode<'a> {
-    fn keyname(&self, add: bool) {
+    fn keyname(&self, _add: bool) {
         // let keyinfo = unsafe { bindings::xmlSecTmplSignatureEnsureKeyInfo(signature, null()) };
 
         // if keyinfo.is_null() {

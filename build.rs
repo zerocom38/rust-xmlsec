@@ -20,7 +20,7 @@ fn main() {
     let inc_strs: Vec<String> = includes
         .clone()
         .iter()
-        .map(|inc| format!("-I{}", inc.to_string_lossy().to_string()))
+        .map(|inc| format!("-I{}", inc.to_string_lossy()))
         .collect();
 
     let bindbuild = BindgenBuilder::default()
@@ -193,7 +193,7 @@ mod vendored {
         let inc_strs: Vec<String> = includes
             .clone()
             .iter()
-            .map(|inc| format!("{}", inc.to_str().unwrap()))
+            .map(|inc| inc.to_str().unwrap().to_string())
             .collect();
 
         println!("XMLSEC INCLUDES: {:?}", inc_strs);
@@ -231,7 +231,7 @@ mod vendored {
         };
 
         let config_reader = BufReader::new(std::fs::File::open("xmlsec/configure.ac").unwrap());
-        let var_names = vec![
+        let var_names = [
             "XMLSEC_VERSION_MAJOR",
             "XMLSEC_VERSION_MINOR",
             "XMLSEC_VERSION_SUBMINOR",
@@ -240,7 +240,7 @@ mod vendored {
 
         for line in config_reader.lines() {
             if let Ok(l) = line {
-                let kv: Vec<&str> = l.split("=").collect();
+                let kv: Vec<&str> = l.split('=').collect();
                 if kv.len() != 2 {
                     continue;
                 }

@@ -89,7 +89,7 @@ impl XmlSecEncryptionContext {
         }
 
         unsafe {
-            let s = bindings::xmlSecBufferGetSize((*self.ctx).result) as usize;
+            let s = bindings::xmlSecBufferGetSize((*self.ctx).result);
             let p = bindings::xmlSecBufferGetData((*self.ctx).result);
 
             if p.is_null() || s == 0 {
