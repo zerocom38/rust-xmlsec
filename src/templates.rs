@@ -2,6 +2,7 @@
 //! Wrapper for DSIG Nodes Templating
 //!
 
+use libxml::tree::Node;
 use openssl::x509::X509;
 
 use crate::bindings;
@@ -74,6 +75,7 @@ pub struct XmlDocumentTemplateBuilder<'d> {
     refsig: XmlSecSignatureMethod,
 
     ns_prefix: Option<String>,
+    parent_node: Option<Node>,
 }
 
 pub struct SignatureNode<'a> {
@@ -328,6 +330,7 @@ impl<'a> XmlDocumentTemplateBuilder<'a> {
             refsig: XmlSecSignatureMethod::Sha1,
 
             ns_prefix: None,
+            parent_node: None,
         }
     }
 
@@ -352,10 +355,14 @@ impl<'a> XmlDocumentTemplateBuilder<'a> {
             )
         };
 
-        let rootptr = if let Some(root) = self.doc.get_root_element() {
-            root.node_ptr() as *mut bindings::xmlNode
+        let rootptr = if let Some(parent) = self.parent_node {
+            parent.node_ptr() as *mut bindings::xmlNode
         } else {
-            return Err(XmlSecError::RootNotFound);
+            if let Some(root) = self.doc.get_root_element() {
+                root.node_ptr() as *mut bindings::xmlNode
+            } else {
+                return Err(XmlSecError::RootNotFound);
+            }
         };
 
         unsafe {
@@ -390,6 +397,12 @@ impl<'a> XmlDocumentTemplateBuilder<'a> {
     /// the namespace prefix for the signature element (e.g. "dsig")
     pub fn ns_prefix(mut self, ns_prefix: &str) -> Self {
         self.ns_prefix = Some(ns_prefix.to_owned());
+        self
+    }
+
+    /// use this node instead of root to add the signature node
+    pub fn parent_node(mut self, parent_node: Node) -> Self {
+        self.parent_node = Some(parent_node);
         self
     }
 }
