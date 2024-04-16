@@ -57,7 +57,13 @@ impl Drop for XmlSecContext {
 
 /// Init xmlsec library
 fn init_xmlsec() {
-    let rc = unsafe { bindings::xmlSecInit() };
+    let rc = unsafe {
+        libxml::bindings::xmlInitParser();
+        libxml::bindings::xmlLoadExtDtdDefaultValue =
+            libxml::bindings::XML_DETECT_IDS as i32 | libxml::bindings::XML_COMPLETE_ATTRS as i32;
+        libxml::bindings::xmlSubstituteEntitiesDefault(1);
+        bindings::xmlSecInit()
+    };
 
     if rc < 0 {
         panic!("XmlSec failed initialization");
