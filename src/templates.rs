@@ -136,13 +136,13 @@ impl<'a> X509Builder<'a> {
             .entries()
             .map(|entry| {
                 format!(
-                    "/{}={}",
+                    "{}={}",
                     entry.object().nid().short_name().unwrap(),
                     entry.data().as_utf8().unwrap()
                 )
             })
             .collect::<Vec<_>>()
-            .join("");
+            .join(",");
         unsafe {
             bindings::xmlSecTmplX509IssuerSerialAddIssuerName(
                 x509ser,
@@ -179,7 +179,7 @@ impl<'a> X509Builder<'a> {
                 cert_string.as_ptr() as *const c_uchar,
                 cert_string.len(),
             );
-            bindings::xmlSecBufferBase64NodeContentWrite(buf, x509cert, 76);
+            bindings::xmlSecBufferBase64NodeContentWrite(buf, x509cert, 64);
             bindings::xmlSecBufferDestroy(buf)
         }
     }
