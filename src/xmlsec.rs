@@ -16,11 +16,6 @@ lazy_static! {
     static ref XMLSEC: Mutex<Option<XmlSecContext>> = Mutex::new(None);
 }
 
-use std::cell::RefCell;
-thread_local! {
-    static LAST_ERROR_REASON: RefCell<i32> = RefCell::new(0);
-}
-
 /// XmlSec Error Reason
 #[derive(Debug, Copy, Clone, PartialEq)]
 #[allow(missing_docs)]
@@ -147,16 +142,16 @@ impl From<i32> for XmlSecErrorReason {
     }
 }
 
-/// Returns the last error that occurred in the library
-pub fn last_error() -> XmlSecErrorReason {
-    let mut reason = 0;
-    LAST_ERROR_REASON.with(|v| reason = *v.borrow());
-    reason.into()
-}
-
-/// Reset last error to no error
-pub fn clear_last_error() {
-    LAST_ERROR_REASON.with(|v| *v.borrow_mut() = 0);
+/// Set the error callback
+pub fn set_error_callback(
+    cb: Option<Box<dyn Fn(Option<&str>, Option<&str>, XmlSecErrorReason, Option<&str>) + Send>>,
+) {
+    XMLSEC
+        .lock()
+        .expect("Unable to lock global xmlsec initalization wrapper")
+        .as_mut()
+        .expect("xmlsec not initalized")
+        .error_callback = cb;
 }
 
 unsafe extern "C" fn error_callback(
@@ -182,34 +177,48 @@ unsafe extern "C" fn error_callback(
         }
     };
 
-    LAST_ERROR_REASON.with_borrow_mut(|v| *v = reason);
+    if let Some(cb) = XMLSEC
+        .lock()
+        .expect("Unable to lock global xmlsec initalization wrapper")
+        .as_ref()
+        .expect("xmlsec not initalized")
+        .error_callback
+        .as_ref()
+    {
+        cb(
+            ptr_to_str(error_object),
+            ptr_to_str(error_subject),
+            reason.into(),
+            ptr_to_str(msg),
+        );
+    }
 
     log::logger().log(
         &RecordBuilder::new()
             .args(format_args!(
                 "func={}:obj={}:subj={}:error={}:{}:{}",
-                str_or_default(func, "unknown"),
-                str_or_default(error_object, "unknown"),
-                str_or_default(error_subject, "unknown"),
+                ptr_to_str(func).unwrap_or("unknown"),
+                ptr_to_str(error_object).unwrap_or("unknown"),
+                ptr_to_str(error_subject).unwrap_or("unknown"),
                 reason,
-                str_or_default(error_msg, ""),
-                str_or_default(msg, ""),
+                ptr_to_str(error_msg).unwrap_or(""),
+                ptr_to_str(msg).unwrap_or("unknown"),
             ))
             .level(log::Level::Error)
             .module_path_static(Some("xmlsec"))
             .target("libxmlsec1")
-            .file(Some(str_or_default(file, "")))
+            .file(Some(ptr_to_str(file).unwrap_or("unknown")))
             .line(Some(line as u32))
             .build(),
     );
 }
 
-fn str_or_default<'a>(file: *const i8, default: &'static str) -> &'a str {
+fn ptr_to_str<'a>(file: *const i8) -> Option<&'a str> {
     if file.is_null() {
-        default
+        None
     } else {
         let file_str = unsafe { CStr::from_ptr(file as *const c_char) };
-        file_str.to_str().unwrap()
+        file_str.to_str().ok()
     }
 }
 
@@ -225,10 +234,9 @@ pub fn guarantee_xmlsec_init() {
 
     if inner.is_none() {
         *inner = Some(XmlSecContext::new());
-    }
-
-    unsafe {
-        bindings::xmlSecErrorsSetCallback(Some(error_callback));
+        unsafe {
+            bindings::xmlSecErrorsSetCallback(Some(error_callback));
+        }
     }
 }
 
@@ -239,7 +247,11 @@ pub fn guarantee_xmlsec_init() {
 /// require the context to be initialized. See [`globals`][globals].
 ///
 /// [globals]: globals
-struct XmlSecContext {}
+
+struct XmlSecContext {
+    error_callback:
+        Option<Box<dyn Fn(Option<&str>, Option<&str>, XmlSecErrorReason, Option<&str>) + Send>>,
+}
 
 impl XmlSecContext {
     /// Runs xmlsec initialization and returns instance of itself.
@@ -248,7 +260,9 @@ impl XmlSecContext {
         init_crypto_app();
         init_crypto();
 
-        Self {}
+        Self {
+            error_callback: None,
+        }
     }
 }
 

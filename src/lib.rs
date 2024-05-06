@@ -35,8 +35,7 @@ mod xmlsec;
 // exports
 pub use self::exts::XmlSecDocumentExt;
 
-pub use self::xmlsec::clear_last_error;
-pub use self::xmlsec::last_error;
+pub use self::xmlsec::set_error_callback;
 pub use self::xmlsec::XmlSecErrorReason;
 
 pub use self::keys::XmlSecKey;
