@@ -146,7 +146,7 @@ impl From<i32> for XmlSecErrorReason {
 pub fn set_error_callback(
     cb: Option<Box<dyn Fn(Option<&str>, Option<&str>, XmlSecErrorReason, Option<&str>) + Send>>,
 ) {
-    init_xmlsec();
+    guarantee_xmlsec_init();
     XMLSEC
         .lock()
         .expect("Unable to lock global xmlsec initalization wrapper")
