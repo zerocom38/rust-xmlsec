@@ -29,6 +29,8 @@ pub enum XmlSecKeyFormat {
     Pkcs12 = bindings::xmlSecKeyDataFormat_xmlSecKeyDataFormatPkcs12 as isize,
     CertPem = bindings::xmlSecKeyDataFormat_xmlSecKeyDataFormatCertPem as isize,
     CertDer = bindings::xmlSecKeyDataFormat_xmlSecKeyDataFormatCertDer as isize,
+    Engine = bindings::xmlSecKeyDataFormat_xmlSecKeyDataFormatEngine as isize,
+    Store = bindings::xmlSecKeyDataFormat_xmlSecKeyDataFormatStore as isize,
 }
 
 impl XmlSecKeyFormat {
