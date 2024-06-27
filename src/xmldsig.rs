@@ -13,8 +13,8 @@ use crate::XmlDocument;
 use crate::XmlNode;
 use crate::XmlSecSignatureMethod;
 
+use std::ffi::c_char;
 use std::mem::forget;
-use std::os::raw::c_uchar;
 use std::ptr::null_mut;
 
 /// Signature signing/veryfying context
@@ -195,7 +195,7 @@ impl XmlSecSignatureContext {
                 if name.is_null() {
                     None
                 } else {
-                    let name = std::ffi::CStr::from_ptr(name as *const i8);
+                    let name = std::ffi::CStr::from_ptr(name as *const c_char);
                     Some(name.to_string_lossy().into_owned())
                 }
             }
@@ -264,8 +264,8 @@ fn find_signode(tree: *mut bindings::xmlNode) -> XmlSecResult<*mut bindings::xml
     let signode = unsafe {
         bindings::xmlSecFindNode(
             tree,
-            &bindings::xmlSecNodeSignature as *const c_uchar,
-            &bindings::xmlSecDSigNs as *const c_uchar,
+            &bindings::xmlSecNodeSignature as *const c_char,
+            &bindings::xmlSecDSigNs as *const c_char,
         )
     };
 

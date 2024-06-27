@@ -7,8 +7,9 @@ use crate::bindings;
 
 use crate::lazy_static;
 
+use std::ffi::c_char;
+use std::ffi::c_int;
 use std::ffi::CStr;
-use std::os::raw::{c_char, c_int};
 use std::ptr::null;
 use std::sync::Mutex;
 
@@ -214,7 +215,7 @@ unsafe extern "C" fn error_callback(
     );
 }
 
-fn ptr_to_str<'a>(file: *const i8) -> Option<&'a str> {
+fn ptr_to_str<'a>(file: *const c_char) -> Option<&'a str> {
     if file.is_null() {
         None
     } else {
