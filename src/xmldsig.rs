@@ -2,6 +2,8 @@
 //! Wrapper for XmlSec Signature Context
 //!
 
+use libxml::bindings::xmlChar;
+
 use crate::bindings;
 
 use crate::XmlSecError;
@@ -264,8 +266,8 @@ fn find_signode(tree: *mut bindings::xmlNode) -> XmlSecResult<*mut bindings::xml
     let signode = unsafe {
         bindings::xmlSecFindNode(
             tree,
-            &bindings::xmlSecNodeSignature as *const c_char,
-            &bindings::xmlSecDSigNs as *const c_char,
+            &bindings::xmlSecNodeSignature as *const xmlChar,
+            &bindings::xmlSecDSigNs as *const xmlChar,
         )
     };
 
