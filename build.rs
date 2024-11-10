@@ -3,7 +3,6 @@
 //!
 //use bindgen::Builder as BindgenBuilder;
 
-use bindgen::Builder as BindgenBuilder;
 use std::env;
 use std::path::PathBuf;
 
@@ -23,21 +22,24 @@ fn main() {
         .map(|inc| format!("-I{}", inc.to_string_lossy()))
         .collect();
 
-    let bindbuild = BindgenBuilder::default()
-        .header("bindings.h")
-        .clang_args(defs)
-        .clang_args(inc_strs)
-        .allowlist_var(r#"(\w*xmlSec\w*)"#)
-        .allowlist_type(r#"(\w*xmlSec\w*)"#)
-        .allowlist_function(r#"(\w*xmlSec\w*)"#)
-        //            .layout_tests(true)
-        .generate_comments(true);
+    #[cfg(feature = "bindgen")]
+    {
+        let bindbuild = bindgen::Builder::default()
+            .header("bindings.h")
+            .clang_args(defs)
+            .clang_args(inc_strs)
+            .allowlist_var(r#"(\w*xmlSec\w*)"#)
+            .allowlist_type(r#"(\w*xmlSec\w*)"#)
+            .allowlist_function(r#"(\w*xmlSec\w*)"#)
+            //            .layout_tests(true)
+            .generate_comments(true);
 
-    let bindings = bindbuild.generate().expect("Unable to generate bindings");
+        let bindings = bindbuild.generate().expect("Unable to generate bindings");
 
-    bindings
-        .write_to_file(path_bindings)
-        .expect("Couldn't write bindings!");
+        bindings
+            .write_to_file(path_bindings)
+            .expect("Couldn't write bindings!");
+    }
 }
 
 mod deps {

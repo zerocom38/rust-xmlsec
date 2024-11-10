@@ -17,27 +17,28 @@ build = "build.rs"
 [features]
 default = ["vendored"]
 vendored = []
+bindgen = ["dep:bindgen"]
 
 [dependencies]
-lazy_static = { version = "^1.4" }
-libxml = "0.3"
-openssl-sys = "0.9"
-openssl = "0.10"
-bitflags = "2.5"
-log = "0.4"
+libxml = "0.3.3"
+openssl-sys = "0.9.104"
+openssl = "0.10.68"
+bitflags = "2.6.0"
+log = "0.4.22"
+once_cell = "1.20.1"
 
 [dev-dependencies]
-env_logger = "0.11"
+env_logger = "0.11.5"
 
 [build-dependencies]
-bindgen = { version = "^0.69" }
-cc = "1.0"
+bindgen = { version = "0.70.1", optional = true }
+cc = "1.1.37"
 
 [target.'cfg(windows)'.build-dependencies]
-vcpkg = "0.2"
+vcpkg = "0.2.15"
 
 [target.'cfg(macos)'.build-dependencies]
-pkg-config = "0.3"
+pkg-config = "0.3.31"
 
 [target.'cfg(unix)'.build-dependencies]
-pkg-config = "0.3"
+pkg-config = "0.3.31"

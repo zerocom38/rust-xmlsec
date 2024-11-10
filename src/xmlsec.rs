@@ -5,17 +5,14 @@ use log::RecordBuilder;
 
 use crate::bindings;
 
-use crate::lazy_static;
-
 use std::ffi::c_char;
 use std::ffi::c_int;
 use std::ffi::CStr;
 use std::ptr::null;
 use std::sync::Mutex;
+use once_cell::sync::Lazy;
 
-lazy_static! {
-    static ref XMLSEC: Mutex<Option<XmlSecContext>> = Mutex::new(None);
-}
+static XMLSEC: Lazy<Mutex<Option<XmlSecContext>>> = Lazy::new(|| Mutex::new(None));
 
 /// XmlSec Error Reason
 #[derive(Debug, Copy, Clone, PartialEq)]
