@@ -357,12 +357,10 @@ impl<'a> XmlDocumentTemplateBuilder<'a> {
 
         let rootptr = if let Some(parent) = self.parent_node {
             parent.node_ptr() as *mut bindings::xmlNode
+        } else if let Some(root) = self.doc.get_root_element() {
+            root.node_ptr() as *mut bindings::xmlNode
         } else {
-            if let Some(root) = self.doc.get_root_element() {
-                root.node_ptr() as *mut bindings::xmlNode
-            } else {
-                return Err(XmlSecError::RootNotFound);
-            }
+            return Err(XmlSecError::RootNotFound);
         };
 
         unsafe {

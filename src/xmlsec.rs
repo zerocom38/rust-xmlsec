@@ -5,12 +5,12 @@ use log::RecordBuilder;
 
 use crate::bindings;
 
+use once_cell::sync::Lazy;
 use std::ffi::c_char;
 use std::ffi::c_int;
 use std::ffi::CStr;
 use std::ptr::null;
 use std::sync::Mutex;
-use once_cell::sync::Lazy;
 
 static XMLSEC: Lazy<Mutex<Option<XmlSecContext>>> = Lazy::new(|| Mutex::new(None));
 

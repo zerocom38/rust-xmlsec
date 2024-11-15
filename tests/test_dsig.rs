@@ -4,7 +4,6 @@
 use std::fs::File;
 use std::io::Read;
 
-use libxml::bindings;
 use openssl::x509::X509;
 use xmlsec::ReferenceSignatureBuilder;
 use xmlsec::X509Builder;

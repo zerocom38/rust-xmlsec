@@ -89,7 +89,7 @@ impl XmlSecDocumentExt for XmlDocument {
             }
             Ok(())
         } else {
-            Err(format!("Error: ID attribute not found").into())
+            Err("Error: ID attribute not found".to_string().into())
         }
     }
 }
