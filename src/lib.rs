@@ -17,7 +17,7 @@ pub use libxml::tree::node::Node as XmlNode;
 pub use libxml::xpath::Context as XmlXPathContext;
 
 // internals
-mod bindings;
+pub mod bindings;
 
 mod crypto;
 mod error;

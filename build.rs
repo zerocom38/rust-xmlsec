@@ -31,6 +31,7 @@ fn main() {
             .allowlist_var(r#"(\w*xmlSec\w*)"#)
             .allowlist_type(r#"(\w*xmlSec\w*)"#)
             .allowlist_function(r#"(\w*xmlSec\w*)"#)
+            .blocklist_file(".*libxml/[^/]*.h")
             //            .layout_tests(true)
             .generate_comments(true);
 
@@ -232,7 +233,10 @@ mod vendored {
             },
         };
 
-        let config_reader = BufReader::new(std::fs::File::open("xmlsec/configure.ac").unwrap());
+        let config_reader = BufReader::new(
+            std::fs::File::open("xmlsec/configure.ac")
+                .expect("missing xmlsec source, submodule not initialized?"),
+        );
         let var_names = [
             "XMLSEC_VERSION_MAJOR",
             "XMLSEC_VERSION_MINOR",

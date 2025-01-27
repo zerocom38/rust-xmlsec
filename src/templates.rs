@@ -80,7 +80,7 @@ pub struct XmlDocumentTemplateBuilder<'d> {
 
 pub struct SignatureNode<'a> {
     doc: &'a XmlDocument,
-    node: *mut bindings::xmlNode,
+    node: *mut libxml::bindings::xmlNode,
 }
 
 /// Build a reference signature node
@@ -336,7 +336,7 @@ impl<'a> XmlDocumentTemplateBuilder<'a> {
 
     /// Builds the actual template and returns
     pub fn build(self) -> XmlSecResult<SignatureNode<'a>> {
-        let docptr = self.doc.doc_ptr() as *mut bindings::xmlDoc;
+        let docptr = self.doc.doc_ptr() as *mut libxml::bindings::xmlDoc;
         let c_ns_prefix = {
             if let Some(ns_prefix) = self.ns_prefix {
                 CString::new(ns_prefix).unwrap().into_raw() as *const c_uchar
@@ -356,9 +356,9 @@ impl<'a> XmlDocumentTemplateBuilder<'a> {
         };
 
         let rootptr = if let Some(parent) = self.parent_node {
-            parent.node_ptr() as *mut bindings::xmlNode
+            parent.node_ptr() as *mut libxml::bindings::xmlNode
         } else if let Some(root) = self.doc.get_root_element() {
-            root.node_ptr() as *mut bindings::xmlNode
+            root.node_ptr() as *mut libxml::bindings::xmlNode
         } else {
             return Err(XmlSecError::RootNotFound);
         };

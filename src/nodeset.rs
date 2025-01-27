@@ -21,8 +21,8 @@ impl XmlSecNodeSet {
         crate::xmlsec::guarantee_xmlsec_init();
 
         let ctx = unsafe {
-            let doc_ptr = doc.doc_ptr() as *mut bindings::xmlDoc;
-            let node_set_ptr: *mut bindings::_xmlNodeSet = std::ptr::null_mut();
+            let doc_ptr = doc.doc_ptr() as *mut libxml::bindings::xmlDoc;
+            let node_set_ptr: *mut libxml::bindings::_xmlNodeSet = std::ptr::null_mut();
             bindings::xmlSecNodeSetCreate(
                 doc_ptr,
                 //                node_set.as_mut() as *mut bindings::_xmlNodeSet,
@@ -44,12 +44,12 @@ impl XmlSecNodeSet {
         with_comments: bool,
         invert: bool,
     ) -> Self {
-        let node_ptr = parent.node_ptr() as *mut bindings::xmlNode;
+        let node_ptr = parent.node_ptr() as *mut libxml::bindings::xmlNode;
         let with_comments = if with_comments { 1 } else { 0 };
         let invert = if invert { 1 } else { 0 };
         let ctx = unsafe {
             bindings::xmlSecNodeSetGetChildren(
-                doc.doc_ptr() as *mut bindings::xmlDoc,
+                doc.doc_ptr() as *mut libxml::bindings::xmlDoc,
                 node_ptr,
                 with_comments,
                 invert,

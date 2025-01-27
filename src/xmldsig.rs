@@ -93,7 +93,7 @@ impl XmlSecSignatureContext {
     pub fn sign_node(&self, node: &XmlNode) -> XmlSecResult<()> {
         self.key_is_set()?;
 
-        let node = node.node_ptr() as bindings::xmlNodePtr;
+        let node = node.node_ptr() as libxml::bindings::xmlNodePtr;
 
         self.sign_node_raw(node)
     }
@@ -120,7 +120,7 @@ impl XmlSecSignatureContext {
     pub fn verify_node(&self, node: &XmlNode) -> XmlSecResult<bool> {
         self.key_is_set()?;
 
-        let node = node.node_ptr() as bindings::xmlNodePtr;
+        let node = node.node_ptr() as libxml::bindings::xmlNodePtr;
 
         self.verify_node_raw(node)
     }
@@ -216,7 +216,7 @@ impl XmlSecSignatureContext {
         }
     }
 
-    fn sign_node_raw(&self, node: *mut bindings::xmlNode) -> XmlSecResult<()> {
+    fn sign_node_raw(&self, node: *mut libxml::bindings::xmlNode) -> XmlSecResult<()> {
         let rc = unsafe { bindings::xmlSecDSigCtxSign(self.ctx, node) };
 
         if rc < 0 {
@@ -226,7 +226,7 @@ impl XmlSecSignatureContext {
         }
     }
 
-    fn verify_node_raw(&self, node: *mut bindings::xmlNode) -> XmlSecResult<bool> {
+    fn verify_node_raw(&self, node: *mut libxml::bindings::xmlNode) -> XmlSecResult<bool> {
         let rc = unsafe { bindings::xmlSecDSigCtxVerify(self.ctx, node) };
 
         if rc < 0 {
@@ -251,9 +251,9 @@ impl Drop for XmlSecSignatureContext {
     }
 }
 
-fn find_root(doc: &XmlDocument) -> XmlSecResult<*mut bindings::xmlNode> {
+fn find_root(doc: &XmlDocument) -> XmlSecResult<*mut libxml::bindings::xmlNode> {
     if let Some(root) = doc.get_root_element() {
-        let rawroot = root.node_ptr() as *mut bindings::xmlNode;
+        let rawroot = root.node_ptr() as *mut libxml::bindings::xmlNode;
         let signode = find_signode(rawroot)?;
 
         Ok(signode)
@@ -262,7 +262,9 @@ fn find_root(doc: &XmlDocument) -> XmlSecResult<*mut bindings::xmlNode> {
     }
 }
 
-fn find_signode(tree: *mut bindings::xmlNode) -> XmlSecResult<*mut bindings::xmlNode> {
+fn find_signode(
+    tree: *mut libxml::bindings::xmlNode,
+) -> XmlSecResult<*mut libxml::bindings::xmlNode> {
     let signode = unsafe {
         bindings::xmlSecFindNode(
             tree,

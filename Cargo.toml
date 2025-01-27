@@ -15,24 +15,24 @@ keywords = ["xml", "xmlsec", "dsig"]
 build = "build.rs"
 
 [features]
-default = ["vendored"]
+default = ["vendored", "bindgen"]
 vendored = []
 bindgen = ["dep:bindgen"]
 
 [dependencies]
 libxml = "0.3.3"
 openssl-sys = "0.9.104"
-openssl = "0.10.68"
-bitflags = "2.6.0"
-log = "0.4.22"
-once_cell = "1.20.1"
+openssl = "0.10.69"
+bitflags = "2.8.0"
+log = "0.4.25"
+once_cell = "1.20.2"
 
 [dev-dependencies]
-env_logger = "0.11.5"
+env_logger = "0.11.6"
 
 [build-dependencies]
-bindgen = { version = "0.70.1", optional = true }
-cc = "1.1.37"
+bindgen = { version = "0.71.1", optional = true }
+cc = "1.2.10"
 
 [target.'cfg(windows)'.build-dependencies]
 vcpkg = "0.2.15"

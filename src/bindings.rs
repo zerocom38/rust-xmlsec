@@ -11,6 +11,14 @@
 #![allow(clippy::upper_case_acronyms)]
 #![allow(clippy::redundant_static_lifetimes)]
 
+use libxml::bindings::xmlChar;
+use libxml::bindings::xmlDocPtr;
+use libxml::bindings::xmlExternalEntityLoader;
+use libxml::bindings::xmlNodePtr;
+use libxml::bindings::xmlNodeSetPtr;
+use libxml::bindings::xmlOutputBufferPtr;
+use libxml::bindings::xmlParserInputBufferPtr;
+
 #[cfg(feature = "bindgen")]
 include!(concat!(env!("OUT_DIR"), "/bindings.rs"));
 
