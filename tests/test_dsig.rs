@@ -103,8 +103,12 @@ fn test_verify_custom_id_signature() {
         .parse_file("tests/resources/sign3-signed.xml")
         .expect("Failed to load signature for verification testing");
 
-    doc.specify_idattr("//sig:Data", "ThisID", Some(&[("sig", "urn:envelope")]))
-        .expect("Unable to set 'ThisID' as the ID attribute name");
+    doc.specify_idattr(
+        "//*[local-name()='DataSet']/*[local-name()='Data'][@ThisID='1']",
+        "ThisID",
+        Some(&[("sig", "urn:envelope")]),
+    )
+    .expect("Unable to set 'ThisID' as the ID attribute name");
 
     match ctx.verify_document(&doc) {
         Ok(valid) => {
