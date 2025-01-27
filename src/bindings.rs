@@ -22,5 +22,8 @@ use libxml::bindings::xmlParserInputBufferPtr;
 #[cfg(feature = "bindgen")]
 include!(concat!(env!("OUT_DIR"), "/bindings.rs"));
 
-#[cfg(not(feature = "bindgen"))]
+#[cfg(all(not(feature = "bindgen"), target_os = "windows"))]
+include!("default_bindings_win32.rs");
+
+#[cfg(all(not(feature = "bindgen"), not(target_os = "windows")))]
 include!("default_bindings.rs");

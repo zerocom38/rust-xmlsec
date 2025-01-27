@@ -15,7 +15,7 @@ keywords = ["xml", "xmlsec", "dsig"]
 build = "build.rs"
 
 [features]
-default = ["vendored", "bindgen"]
+default = ["vendored"]
 vendored = []
 bindgen = ["dep:bindgen"]
 
