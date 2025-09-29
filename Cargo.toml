@@ -1,11 +1,11 @@
 [package]
 name = "xmlsec"
-version = "1.0.0"
+version = "1.1.0"
 authors = [
     "Leonhard Weber <leonhard.weber@voipir.cl>",
     "Stefan Sommerfeld <stefan.sommerfeld@gmail.com>",
 ]
-edition = "2021"
+edition = "2024"
 readme = "README.md"
 license = "MIT"
 description = "Wrapper for xmlsec1 library"
@@ -20,25 +20,25 @@ vendored = []
 bindgen = ["dep:bindgen"]
 
 [dependencies]
-libxml = "0.3.3"
-openssl-sys = "0.9.104"
-openssl = "0.10.69"
-bitflags = "2.8.0"
-log = "0.4.25"
-once_cell = "1.20.2"
+libxml = "0.3.8"
+openssl-sys = "0.9.109"
+openssl = "0.10.73"
+bitflags = "2.9.4"
+log = "0.4.28"
+once_cell = "1.21.3"
 
 [dev-dependencies]
-env_logger = "0.11.6"
+env_logger = "0.11.8"
 
 [build-dependencies]
-bindgen = { version = "0.71.1", optional = true }
-cc = "1.2.10"
+bindgen = { version = "0.72.1", optional = true }
+cc = "1.2.39"
 
 [target.'cfg(windows)'.build-dependencies]
 vcpkg = "0.2.15"
 
 [target.'cfg(macos)'.build-dependencies]
-pkg-config = "0.3.31"
+pkg-config = "0.3.32"
 
 [target.'cfg(unix)'.build-dependencies]
-pkg-config = "0.3.31"
+pkg-config = "0.3.32"

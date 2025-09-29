@@ -68,7 +68,15 @@ mod deps {
             !lib.include_paths.is_empty(),
             "Libxml2 includes not found, not correctly installed!"
         );
-        *includes = lib.include_paths;
+        let include_paths = lib
+            .include_paths
+            .into_iter()
+            .fold(Vec::new(), |mut acc, p| {
+                acc.push(p.join("libxml2"));
+                acc.push(p);
+                acc
+            });
+        *includes = include_paths;
         *flags = defs;
     }
 
