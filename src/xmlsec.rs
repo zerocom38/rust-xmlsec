@@ -6,9 +6,9 @@ use log::RecordBuilder;
 use crate::bindings;
 
 use once_cell::sync::Lazy;
+use std::ffi::CStr;
 use std::ffi::c_char;
 use std::ffi::c_int;
-use std::ffi::CStr;
 use std::ptr::null;
 use std::sync::Mutex;
 
@@ -165,11 +165,11 @@ unsafe extern "C" fn error_callback(
     let error_msg = {
         let mut i = 0;
         loop {
-            let error_msg = bindings::xmlSecErrorsGetMsg(i);
+            let error_msg = unsafe { bindings::xmlSecErrorsGetMsg(i) };
             if error_msg.is_null() {
                 break error_msg;
             }
-            if bindings::xmlSecErrorsGetCode(i) == reason {
+            if unsafe { bindings::xmlSecErrorsGetCode(i) } == reason {
                 break error_msg;
             }
             i += 1;

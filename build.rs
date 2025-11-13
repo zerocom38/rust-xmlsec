@@ -173,6 +173,7 @@ mod vendored {
             "xmlsec/src/xmltree.c",
             "xmlsec/src/xpath.c",
             "xmlsec/src/xslt.c",
+            "xmlsec/src/x509.c",
             "xmlsec/src/openssl/app.c",
             "xmlsec/src/openssl/ciphers.c",
             "xmlsec/src/openssl/crypto.c",

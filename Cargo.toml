@@ -21,9 +21,9 @@ bindgen = ["dep:bindgen"]
 
 [dependencies]
 libxml = "0.3.8"
-openssl-sys = "0.9.109"
-openssl = "0.10.73"
-bitflags = "2.9.4"
+openssl-sys = "0.9.111"
+openssl = "0.10.75"
+bitflags = "2.10.0"
 log = "0.4.28"
 once_cell = "1.21.3"
 
@@ -32,7 +32,7 @@ env_logger = "0.11.8"
 
 [build-dependencies]
 bindgen = { version = "0.72.1", optional = true }
-cc = "1.2.39"
+cc = "1.2.45"
 
 [target.'cfg(windows)'.build-dependencies]
 vcpkg = "0.2.15"
