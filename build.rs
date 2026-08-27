@@ -157,8 +157,9 @@ mod vendored {
             "xmlsec/src/keyinfo.c",
             "xmlsec/src/keys.c",
             "xmlsec/src/keysdata.c",
+            "xmlsec/src/keysdata_helpers.c",
             "xmlsec/src/keysmngr.c",
-            "xmlsec/src/kw_aes_des.c",
+            "xmlsec/src/kw_helpers.c",
             "xmlsec/src/list.c",
             "xmlsec/src/membuf.c",
             "xmlsec/src/nodeset.c",
@@ -166,6 +167,7 @@ mod vendored {
             "xmlsec/src/relationship.c",
             "xmlsec/src/strings.c",
             "xmlsec/src/templates.c",
+            "xmlsec/src/transform_helpers.c",
             "xmlsec/src/transforms.c",
             "xmlsec/src/xmldsig.c",
             "xmlsec/src/xmlenc.c",
@@ -173,20 +175,23 @@ mod vendored {
             "xmlsec/src/xmltree.c",
             "xmlsec/src/xpath.c",
             "xmlsec/src/xslt.c",
-            "xmlsec/src/x509.c",
+            "xmlsec/src/x509_helpers.c",
             "xmlsec/src/openssl/app.c",
             "xmlsec/src/openssl/ciphers.c",
             "xmlsec/src/openssl/crypto.c",
+            "xmlsec/src/openssl/der_encoded_value.c",
             "xmlsec/src/openssl/digests.c",
             "xmlsec/src/openssl/evp.c",
             "xmlsec/src/openssl/hmac.c",
             "xmlsec/src/openssl/kdf.c",
             "xmlsec/src/openssl/key_agrmnt.c",
+            "xmlsec/src/openssl/key_encapsulation.c",
             "xmlsec/src/openssl/keysstore.c",
             "xmlsec/src/openssl/kt_rsa.c",
-            "xmlsec/src/openssl/kw_aes.c",
+            "xmlsec/src/openssl/kw_rfc_3394.c",
             "xmlsec/src/openssl/kw_des.c",
             "xmlsec/src/openssl/signatures.c",
+            "xmlsec/src/openssl/signatures_legacy.c",
             "xmlsec/src/openssl/symkeys.c",
             "xmlsec/src/openssl/x509.c",
             "xmlsec/src/openssl/x509vfy.c",
@@ -246,24 +251,47 @@ mod vendored {
             std::fs::File::open("xmlsec/configure.ac")
                 .expect("missing xmlsec source, submodule not initialized?"),
         );
-        let var_names = [
-            "XMLSEC_VERSION_MAJOR",
-            "XMLSEC_VERSION_MINOR",
-            "XMLSEC_VERSION_SUBMINOR",
-        ];
         let mut replace_map: HashMap<String, String> = HashMap::new();
 
-        for line in config_reader.lines() {
-            if let Ok(l) = line {
-                let kv: Vec<&str> = l.split('=').collect();
-                if kv.len() != 2 {
-                    continue;
+        // The version numbers are derived by configure.ac from AC_INIT's package
+        // version at ./configure time (e.g. `AC_INIT([xmlsec1],[1.3.12],[...])`),
+        // so parse it directly here instead of the shell-expression variables.
+        let version = config_reader
+            .lines()
+            .filter_map(|l| l.ok())
+            .find_map(|l| {
+                let l = l.trim().to_string();
+                if !l.starts_with("AC_INIT(") {
+                    return None;
                 }
-                if var_names.contains(&kv[0]) {
-                    replace_map.insert(kv[0].to_string(), kv[1].to_string());
-                }
-            }
-        }
+                l.split(',').nth(1).map(|v| {
+                    v.trim()
+                        .trim_start_matches('[')
+                        .trim_end_matches(']')
+                        .to_string()
+                })
+            })
+            .expect("could not find AC_INIT version in configure.ac");
+
+        let version_parts: Vec<&str> = version.split('.').collect();
+        assert_eq!(
+            version_parts.len(),
+            3,
+            "unexpected AC_INIT version format: {}",
+            version
+        );
+        replace_map.insert(
+            "XMLSEC_VERSION_MAJOR".to_string(),
+            version_parts[0].to_string(),
+        );
+        replace_map.insert(
+            "XMLSEC_VERSION_MINOR".to_string(),
+            version_parts[1].to_string(),
+        );
+        replace_map.insert(
+            "XMLSEC_VERSION_SUBMINOR".to_string(),
+            version_parts[2].to_string(),
+        );
 
         replace_map.insert(
             "XMLSEC_VERSION".to_string(),

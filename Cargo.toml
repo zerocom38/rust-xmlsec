@@ -20,25 +20,25 @@ vendored = []
 bindgen = ["dep:bindgen"]
 
 [dependencies]
-libxml = "0.3.8"
-openssl-sys = "0.9.111"
-openssl = "0.10.75"
-bitflags = "2.10.0"
-log = "0.4.28"
-once_cell = "1.21.3"
+libxml = "0.3.21"
+openssl-sys = "0.9.117"
+openssl = "0.10.81"
+bitflags = "2.13.1"
+log = "0.4.34"
+once_cell = "1.21.4"
 
 [dev-dependencies]
-env_logger = "0.11.8"
+env_logger = "0.11.11"
 
 [build-dependencies]
 bindgen = { version = "0.72.1", optional = true }
-cc = "1.2.45"
+cc = "1.4.4"
 
 [target.'cfg(windows)'.build-dependencies]
 vcpkg = "0.2.15"
 
 [target.'cfg(macos)'.build-dependencies]
-pkg-config = "0.3.32"
+pkg-config = "0.3.34"
 
 [target.'cfg(unix)'.build-dependencies]
-pkg-config = "0.3.32"
+pkg-config = "0.3.34"
